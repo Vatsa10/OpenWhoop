@@ -113,7 +113,7 @@ async function setupAndConnect(deviceToUse = null) {
     const isIPhone = /iPhone|iPad|iPod/.test(ua);
     const isSafari = /Safari/.test(ua) && !/Chrome|CriOS|Bluefy/.test(ua);
     if (isIPhone && isSafari) {
-      showError("iPhone Safari can't access Bluetooth. Install Bluefy (App Store, $0.99) and open this page in Bluefy instead.");
+      showError("iPhone Safari can't access Bluetooth. Install Bluefy (free on the App Store) and open this page in Bluefy instead.");
     } else if (isIPhone) {
       showError("Web Bluetooth not available. Use Bluefy on iPhone or desktop Chrome on Mac.");
     } else {

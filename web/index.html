@@ -369,74 +369,63 @@
 <section id="setup">
   <div class="container">
     <div class="section-label">Setup Guide</div>
-    <h2 class="section-title">Pick your path.</h2>
-    <p class="section-subtitle">From 30 seconds on Mac Chrome to a native-feeling iOS app. No developer account required for any path.</p>
+    <h2 class="section-title">Three steps to your data.</h2>
+    <p class="section-subtitle">No account, no install required. Open the dashboard, pair your strap, done. Pick the path for your device.</p>
 
     <div class="setup-steps">
       <details class="setup-step" open>
         <summary>
           <span class="step-num">1</span>
-          Mac Chrome — fastest path
+          Desktop — Chrome, Edge, Brave, or Arc
           <span class="step-time">~30 sec</span>
           <span class="step-chevron">▾</span>
         </summary>
         <div class="step-body">
-          <p>Run the local server, open Chrome, pair your strap.</p>
-          <p style="margin-top:8px;"><code>./run.sh dash --host 0.0.0.0 --port 8765</code></p>
-          <p style="margin-top:8px;">Then open <code>http://localhost:8765/app.html</code> in <strong>Chrome</strong> (not Safari — Web Bluetooth requires Chromium). Tap your band to wake it, click <strong>Connect Whoop</strong>, and select your strap from the device picker.</p>
+          <p>Web Bluetooth works out of the box in any Chromium browser on Mac, Windows, or Linux. Safari and Firefox do not support it.</p>
+          <p style="margin-top:8px;">1. Click <a href="/app.html"><strong>Launch Dashboard</strong></a> at the top of this page.</p>
+          <p>2. Tap your WHOOP band to wake it (it won't show while charging).</p>
+          <p>3. Click <strong>Connect Whoop</strong> and pick your strap from the browser's device list.</p>
+          <p style="margin-top:8px;">It pairs, drains any data stored on the strap, and starts streaming. Everything is saved in your browser.</p>
         </div>
       </details>
 
       <details class="setup-step">
         <summary>
           <span class="step-num">2</span>
-          iPhone — Bluefy browser (no Mac needed)
-          <span class="step-time">~20 min</span>
+          iPhone &amp; iPad — Bluefy browser
+          <span class="step-time">~3 min</span>
           <span class="step-chevron">▾</span>
         </summary>
         <div class="step-body">
-          <p>Web Bluetooth is not available in Mobile Safari. Use <a href="https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055" target="_blank">Bluefy</a> ($0.99 one-time) — it's a WebKit browser with CoreBluetooth Web Bluetooth support.</p>
-          <p style="margin-top:8px;">1. Deploy the dashboard to Cloudflare Pages: <code>npm run deploy</code></p>
-          <p>2. Open Bluefy on iPhone and navigate to your Pages URL.</p>
-          <p>3. Tap <strong>Connect Whoop</strong> — Bluefy will ask for Bluetooth permission.</p>
-          <p style="margin-top:8px;">See <a href="https://github.com/Vatsa10/OpenWhoop/blob/main/docs/IPHONE_BLUEFY.md" target="_blank">full iPhone + Bluefy guide</a> for detailed steps.</p>
+          <p>Apple's Safari can't access Bluetooth, so use <a href="https://apps.apple.com/us/app/bluefy-web-ble-browser/id1492822055" target="_blank">Bluefy</a>, a free browser with full Web Bluetooth support.</p>
+          <p style="margin-top:8px;">1. Install <strong>Bluefy</strong> from the App Store (free).</p>
+          <p>2. Open Bluefy and go to <strong>openwhoop.vatsa.online</strong>.</p>
+          <p>3. Launch the dashboard, tap <strong>Connect Whoop</strong>, and allow Bluetooth when asked.</p>
+          <p>4. Pick your strap. Your iPhone pairs to it directly over Bluetooth.</p>
         </div>
       </details>
 
       <details class="setup-step">
         <summary>
           <span class="step-num">3</span>
-          iPhone + Mac — PWA install via Safari
-          <span class="step-time">~5 min</span>
+          Install as an app (optional)
+          <span class="step-time">~20 sec</span>
           <span class="step-chevron">▾</span>
         </summary>
         <div class="step-body">
-          <p>Pair your strap on Mac Chrome, export the data as JSON, and import on iPhone Safari.</p>
-          <p style="margin-top:8px;">1. Connect and sync on Mac Chrome at <code>http://localhost:8765/app.html</code>.</p>
-          <p>2. Click <strong>JSON</strong> to export all data.</p>
-          <p>3. Transfer the JSON to your iPhone (AirDrop, iCloud, etc.).</p>
-          <p>4. Open <code>/app.html</code> in Safari on iPhone and tap <strong>Import</strong>.</p>
-          <p style="margin-top:8px;">See <a href="https://github.com/Vatsa10/OpenWhoop/blob/main/docs/IPHONE.md" target="_blank">full iPhone guide</a> for the Safari Add to Home Screen workflow.</p>
-        </div>
-      </details>
-
-      <details class="setup-step">
-        <summary>
-          <span class="step-num">4</span>
-          iOS Native — Capacitor wrap (needs Xcode)
-          <span class="step-time">~15 min</span>
-          <span class="step-chevron">▾</span>
-        </summary>
-        <div class="step-body">
-          <p>Wrap the PWA as a native iOS app using Capacitor. Gets you native BLE via <code>@capacitor-community/bluetooth-le</code> — no browser Web Bluetooth dependency.</p>
-          <p style="margin-top:8px;">See the <a href="https://github.com/Vatsa10/OpenWhoop/tree/ios-app" target="_blank">ios-app branch</a> for the full Capacitor setup. Free Apple-ID signing works — just re-sign in Xcode every 7 days.</p>
-          <p style="margin-top:8px;">See <a href="https://github.com/Vatsa10/OpenWhoop/blob/main/docs/native-ios.md" target="_blank">native iOS guide</a> for details.</p>
+          <p>OpenWhoop is a Progressive Web App, so you can add it to your home screen or dock and launch it like a native app, with offline support.</p>
+          <p style="margin-top:8px;"><strong>iPhone (Bluefy or Safari):</strong> Share button, then <strong>Add to Home Screen</strong>.</p>
+          <p><strong>Desktop Chrome/Edge:</strong> the install icon in the address bar, or menu, then <strong>Install OpenWhoop</strong>.</p>
+          <p style="margin-top:8px;">The installed app opens straight to the dashboard.</p>
         </div>
       </details>
     </div>
 
     <p style="margin-top:24px; font-size:14px; color:var(--muted);">
-      <strong>Requirements:</strong> A WHOOP 4.0 strap you own. A browser with Web Bluetooth (Chromium on desktop, Bluefy on iPhone). That's it.
+      <strong>You need:</strong> a WHOOP 4.0 strap you own, and a browser with Web Bluetooth (any Chromium browser on desktop, or Bluefy on iPhone). That's it, no subscription, no signup.
+    </p>
+    <p style="margin-top:10px; font-size:13px; color:var(--muted);">
+      Want to self-host or run it locally? See the <a href="https://github.com/Vatsa10/OpenWhoop#quick-start" target="_blank" style="color:var(--blue-600);">README on GitHub</a>.
     </p>
   </div>
 </section>
