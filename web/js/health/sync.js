@@ -22,9 +22,15 @@ const SHORTCUT_RESULT_PARAM = 'weight_from_shortcut';
  *   { values: { weight_kg, weight_kg_date, height_cm, ... }, updated_at }
  * or null if the server isn't reachable / endpoint doesn't exist.
  */
+// Sentinel: the endpoint returned 404, so there's no Python backend here
+// (static deploy / `npx serve`). Distinct from null (reachable but no data /
+// transient error) so the poll loop can stop immediately instead of retrying.
+export const NO_BACKEND = Symbol('no-backend');
+
 export async function fetchHealthSnapshot() {
   try {
     const r = await fetch('/api/health/latest', { cache: 'no-store' });
+    if (r.status === 404) return NO_BACKEND;
     if (!r.ok) return null;
     return await r.json();
   } catch {
@@ -37,9 +43,9 @@ export async function fetchHealthSnapshot() {
  * differences to profile. Returns the merged profile (or null if nothing
  * changed / no snapshot).
  */
-export async function applySnapshotToProfile(db = null) {
-  const snap = await fetchHealthSnapshot();
-  if (!snap || !snap.values) return null;
+export async function applySnapshotToProfile(db = null, snap = undefined) {
+  if (snap === undefined) snap = await fetchHealthSnapshot();
+  if (snap === NO_BACKEND || !snap || !snap.values) return null;
   const d = db ?? (await openDb());
   const existing = (await getProfile(d)) ?? {};
   const merged = { ...existing };
@@ -73,17 +79,22 @@ export function startHealthPolling(onUpdate = () => {}) {
   }
 
   let timer = null;
+  let stopped = false;
   let misses = 0;
   const MAX_MISSES = 3; // ride out transient failures before giving up
+  const stop = () => { stopped = true; if (timer) { clearInterval(timer); timer = null; } };
   const tick = async () => {
     try {
-      const updated = await applySnapshotToProfile();
+      const snap = await fetchHealthSnapshot();
+      // Definitive "no backend here" (static deploy) — stop polling at once
+      // instead of burning the miss budget on guaranteed 404s. The `stopped`
+      // flag also covers the first tick resolving before setInterval is set.
+      if (snap === NO_BACKEND) { stop(); return; }
+      const updated = await applySnapshotToProfile(null, snap);
       if (updated == null) {
         // No snapshot this tick. After a few misses assume there's no Python
-        // server and stop, but tolerate transient network blips first. Not
-        // clearing on the first miss also dodges a timer-still-null race when
-        // the first tick resolves before setInterval below has assigned it.
-        if (++misses >= MAX_MISSES && timer) { clearInterval(timer); timer = null; }
+        // server and stop, but tolerate transient network blips first.
+        if (++misses >= MAX_MISSES) stop();
         return;
       }
       misses = 0;
@@ -93,8 +104,8 @@ export function startHealthPolling(onUpdate = () => {}) {
     }
   };
   tick();
-  timer = setInterval(tick, POLL_INTERVAL_MS);
-  return () => { if (timer) clearInterval(timer); };
+  if (!stopped) timer = setInterval(tick, POLL_INTERVAL_MS);
+  return stop;
 }
 
 /**

@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { openDb } from '../../../web/js/data/db.js';
 import { getProfile, putProfile } from '../../../web/js/data/queries.js';
 import {
-  applySnapshotToProfile, fetchHealthSnapshot,
+  applySnapshotToProfile, fetchHealthSnapshot, NO_BACKEND,
   readShortcutResult, buildIngestUrl,
 } from '../../../web/js/health/sync.js';
 
@@ -37,8 +37,13 @@ describe('fetchHealthSnapshot', () => {
     expect(out).toBeNull();
   });
 
-  it('returns null on 404', async () => {
+  it('returns NO_BACKEND on 404 (no Python server / static deploy)', async () => {
     global.fetch = vi.fn(() => Promise.resolve({ ok: false, status: 404 }));
+    expect(await fetchHealthSnapshot()).toBe(NO_BACKEND);
+  });
+
+  it('returns null on non-404 error status', async () => {
+    global.fetch = vi.fn(() => Promise.resolve({ ok: false, status: 500 }));
     expect(await fetchHealthSnapshot()).toBeNull();
   });
 
