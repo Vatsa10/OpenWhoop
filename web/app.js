@@ -23,6 +23,7 @@ const COLORS = {
   fg:      getCss("--fg"),
   fg2:     getCss("--fg-2"),
   border:  getCss("--border"),
+  track:   getCss("--track"),
   stage: {
     wake:  getCss("--stage-wake"),
     light: getCss("--stage-light"),
@@ -186,8 +187,8 @@ function coachBubble(role, text) {
   const isUser = role === "user";
   wrap.style.cssText = `max-width:82%; padding:10px 14px; border-radius:14px; font-size:14px; line-height:1.5; white-space:pre-wrap; ` +
     (isUser
-      ? "align-self:flex-end; background:#03B5F3; color:#04121b; border-bottom-right-radius:4px;"
-      : "align-self:flex-start; background:rgba(255,255,255,.06); color:var(--text); border-bottom-left-radius:4px;");
+      ? "align-self:flex-end; background:var(--accent); color:#fff; border-bottom-right-radius:4px;"
+      : "align-self:flex-start; background:var(--bubble-bot); color:var(--text); border-bottom-left-radius:4px;");
   wrap.textContent = text;
   log.appendChild(wrap);
   log.scrollTop = log.scrollHeight;
@@ -308,7 +309,7 @@ function commonOpts(extra = {}) {
       },
       tooltip: {
         backgroundColor: "rgba(15,15,20,0.95)",
-        borderColor: "rgba(255,255,255,0.06)",
+        borderColor: COLORS.border,
         borderWidth: 1,
         padding: 10,
         cornerRadius: 8,
@@ -388,7 +389,7 @@ function drawRing(svg, score, color, maxVal = 100, opts = {}) {
         <feMerge><feMerge node-in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
       </filter>` : ""}
     </defs>
-    <path d="${trackPath}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="${stroke}" stroke-linecap="round" />
+    <path d="${trackPath}" fill="none" stroke="${COLORS.track}" stroke-width="${stroke}" stroke-linecap="round" />
     ${pct > 0 ? `
       <path d="${fillPath}" fill="none" stroke="url(#${gid})" stroke-width="${stroke}" stroke-linecap="round" ${glow ? `filter="url(#${fid})"` : ""} />
       <circle cx="${headX}" cy="${headY}" r="${stroke / 2}" fill="${colorTo}" />

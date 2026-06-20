@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
 <title>OpenWhoop</title>
 <link rel="manifest" href="/manifest.json" />
-<meta name="theme-color" content="#07070A" />
-<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#FAFBFD" />
+<meta name="color-scheme" content="light" />
 <meta name="description" content="Open-source Whoop 4.0 dashboard. Runs entirely in your browser — no subscription, no cloud." />
 
 <!-- iOS: install as a real-feeling app via Safari → Share → Add to Home Screen -->
@@ -23,7 +23,7 @@
 <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
 <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
-<link rel="mask-icon" href="/icons/icon.svg" color="#16EC06" />
+<link rel="mask-icon" href="/icons/icon.svg" color="#3B82F6" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <!-- Load web fonts non-render-blocking so the PWA paints (and works offline)
@@ -181,7 +181,7 @@
   </div>
 
   <!-- Apple Health setup modal -->
-  <div id="health-setup" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center;">
+  <div id="health-setup" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(15,23,42,0.32); backdrop-filter:blur(4px); z-index:1000; justify-content:center; align-items:center;">
     <div style="background:var(--bg); color:var(--fg); padding:24px; max-width:520px; border:1px solid var(--border); border-radius:8px;">
       <h2 style="margin-top:0;">Apple Health Sync</h2>
       <p style="font-size:13px; line-height:1.5; color:var(--muted);">
@@ -587,8 +587,8 @@
           <div><div class="big-num" style="font-size:32px;"><span id="energy-resting">—</span></div><div style="font-size:10px; color:var(--text-muted);">Resting kcal</div></div>
           <div><div class="big-num" style="font-size:32px;"><span id="energy-remaining">—</span></div><div style="font-size:10px; color:var(--text-muted);">Strain budget left</div></div>
         </div>
-        <div style="margin-top:14px; height:8px; border-radius:4px; background:rgba(255,255,255,.08); overflow:hidden;">
-          <div id="energy-bank-fill" style="height:100%; width:0%; background:#03B5F3; border-radius:4px; transition:width .4s ease;"></div>
+        <div style="margin-top:14px; height:8px; border-radius:4px; background:var(--track); overflow:hidden;">
+          <div id="energy-bank-fill" style="height:100%; width:0%; background:var(--strain); border-radius:4px; transition:width .4s ease;"></div>
         </div>
       </div>
       <div class="card span-4">
@@ -757,7 +757,7 @@
         <form id="coach-form" style="display:flex; gap:8px; margin-top:12px;">
           <input id="coach-input" type="text" autocomplete="off" enterkeyhint="send"
             placeholder="e.g. Why is my recovery low today?"
-            style="flex:1; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); color:var(--text); font-size:14px;" />
+            style="flex:1; padding:12px 14px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-size:14px;" />
           <button class="primary" type="submit" id="coach-send">Send</button>
         </form>
         <div class="hint" style="margin-top:8px;">Runs on Cloudflare Workers AI. Educational only — not medical advice.</div>

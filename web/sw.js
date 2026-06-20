@@ -5,7 +5,7 @@
 
 // Bump this version any time the caching strategy or precache list changes
 // so old caches are pruned on activate.
-const CACHE_NAME = 'openwhoop-v1';
+const CACHE_NAME = 'openwhoop-v2';
 
 // Assets to pre-cache on install. Paths are relative to SW scope (/)
 const PRECACHE = [

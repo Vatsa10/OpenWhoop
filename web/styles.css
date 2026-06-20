@@ -1,44 +1,55 @@
 /* ================================================================
-   OpenWhoop dashboard — design system v2
-   Inspired by WHOOP's signature dark + vibrant ring aesthetic.
+   OpenWhoop dashboard — design system v3
+   Light, premium-minimal. Cohesive with the landing page:
+   near-white tinted neutrals, one light-blue accent for chrome,
+   metric colors reserved for data (rings, charts, zones).
    ================================================================ */
 
 :root {
-  /* ─── Surfaces ─────────────────────────────────── */
-  --bg:           #07070A;          /* true-black canvas */
-  --surface-1:    #0F0F14;          /* primary card */
-  --surface-2:    #16161D;          /* nested / elevated */
-  --surface-3:    #1E1E27;          /* hover / inputs */
-  --surface-glow: #20202B;
-  --border:       rgba(255,255,255,0.06);
-  --border-hi:    rgba(255,255,255,0.12);
-  --hairline:     rgba(255,255,255,0.04);
+  /* ─── Surfaces (tinted toward slate-blue, never pure #fff/#000) ─── */
+  --bg:           #FAFBFD;          /* app canvas */
+  --surface-1:    #FFFFFF;          /* cards */
+  --surface-2:    #F3F6FB;          /* panels, inputs, rails */
+  --surface-3:    #E9EFF7;          /* hover / pressed */
+  --surface-glow: #DFE8F4;
+  --card:         var(--surface-1); /* inline-style alias */
+  --border:       rgba(15, 23, 42, 0.09);
+  --border-hi:    rgba(15, 23, 42, 0.18);
+  --hairline:     rgba(15, 23, 42, 0.06);
+  --track:        rgba(15, 23, 42, 0.07);   /* ring/donut/bar tracks */
+  --bubble-bot:   #EEF3FA;                   /* coach bot bubble */
 
   /* ─── Text ─────────────────────────────────────── */
-  --text:         #FFFFFF;
-  --text-2:       #E2E2E8;
-  --text-muted:   #8B8B95;
-  --text-faint:   #51515B;
+  --text:         #0F172A;          /* slate-900 */
+  --text-2:       #334155;          /* slate-700 */
+  --text-muted:   #64748B;          /* slate-500 */
+  --text-faint:   #94A3B8;          /* slate-400 */
 
-  /* ─── Metric palette (Whoop-faithful) ──────────── */
-  --recovery:     #16EC06;
-  --recovery-2:   #0AA803;
-  --recovery-glow: rgba(22,236,6,0.35);
+  /* ─── Accent (UI chrome, primary actions, selection) ── */
+  --accent:       #3B82F6;          /* matches landing blue-500 */
+  --accent-2:     #2563EB;          /* blue-600 */
+  --accent-soft:  #EFF6FF;          /* blue-50 tint */
+  --accent-ring:  rgba(59, 130, 246, 0.28);
 
-  --strain:       #03B5F3;
-  --strain-2:     #007BB2;
-  --strain-glow:  rgba(3,181,243,0.35);
+  /* ─── Metric palette (data only — tuned for white bg) ──── */
+  --recovery:     #16A34A;
+  --recovery-2:   #15803D;
+  --recovery-glow: rgba(22, 163, 74, 0.20);
 
-  --sleep:        #4D7CFF;
-  --sleep-2:      #3460D9;
-  --sleep-glow:   rgba(77,124,255,0.32);
+  --strain:       #0EA5E9;
+  --strain-2:     #0284C7;
+  --strain-glow:  rgba(14, 165, 233, 0.20);
 
-  --warn:         #FFB020;
-  --bad:          #FF4757;
+  --sleep:        #6366F1;
+  --sleep-2:      #4F46E5;
+  --sleep-glow:   rgba(99, 102, 241, 0.20);
+
+  --warn:         #D97706;
+  --bad:          #DC2626;
   --good:         var(--recovery);
   --mid:          var(--warn);
 
-  /* legacy aliases */
+  /* legacy aliases (keep app.js + inline styles working) */
   --rec-good:     var(--recovery);
   --rec-mid:      var(--warn);
   --rec-bad:      var(--bad);
@@ -49,34 +60,43 @@
   --card-bg:      var(--surface-1);
   --card-bg2:     var(--surface-2);
 
-  /* Stage colors */
-  --stage-wake:   #FF4757;
-  --stage-light:  #03B5F3;
-  --stage-deep:   #2547D4;
-  --stage-rem:    #B95CFF;
+  /* Sleep stages */
+  --stage-wake:   #EF4444;
+  --stage-light:  #0EA5E9;
+  --stage-deep:   #4F46E5;
+  --stage-rem:    #A855F7;
 
-  /* Zones */
-  --zone-1: #1E88E5;
-  --zone-2: #00BCD4;
-  --zone-3: #16EC06;
-  --zone-4: #FFB020;
-  --zone-5: #FF4757;
+  /* HR zones (cool → hot) */
+  --zone-1: #3B82F6;
+  --zone-2: #06B6D4;
+  --zone-3: #16A34A;
+  --zone-4: #F59E0B;
+  --zone-5: #EF4444;
 
   /* ─── Typography ───────────────────────────────── */
   --font:         'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-display: 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   --font-mono:    ui-monospace, 'JetBrains Mono', SFMono-Regular, Menlo, monospace;
 
+  /* ─── Elevation (soft, slate-tinted) ───────────── */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow:    0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 6px 20px -6px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.05);
+
   /* ─── Geometry ─────────────────────────────────── */
   --radius-xs: 6px;
   --radius-sm: 10px;
-  --radius:    18px;
-  --radius-lg: 28px;
+  --radius:    16px;
+  --radius-lg: 24px;
   --gutter:    20px;
-  --sidebar-w: 240px;
+  --sidebar-w: 244px;
   --topbar-h:  64px;
 
-  /* iOS safe areas (notch / Dynamic Island / home indicator) */
+  /* ─── z-index scale ────────────────────────────── */
+  --z-nav:   30;
+  --z-modal: 200;
+
+  /* iOS safe areas */
   --sa-top:    env(safe-area-inset-top, 0px);
   --sa-bottom: env(safe-area-inset-bottom, 0px);
   --sa-left:   env(safe-area-inset-left, 0px);
@@ -99,6 +119,7 @@ html {
   font-feature-settings: "ss01", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color-scheme: light;
 }
 
 body {
@@ -106,14 +127,13 @@ body {
   display: grid;
   grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(3,181,243,0.06), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(22,236,6,0.04), transparent 60%),
+    radial-gradient(900px 480px at 100% -8%, rgba(59, 130, 246, 0.05), transparent 60%),
     var(--bg);
 }
 
-::selection { background: var(--strain); color: white; }
+::selection { background: var(--accent-soft); color: var(--accent-2); }
 
-/* Scrollbar */
+/* Scrollbar — quiet on light */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 999px; border: 2px solid var(--bg); }
@@ -150,8 +170,8 @@ p  { margin: 0; }
   position: sticky;
   top: 0;
   height: 100vh;
-  background: linear-gradient(180deg, #0A0A0E 0%, #07070A 100%);
-  border-right: 1px solid var(--hairline);
+  background: var(--surface-2);
+  border-right: 1px solid var(--border);
   padding: 20px 14px;
   display: flex;
   flex-direction: column;
@@ -183,15 +203,11 @@ p  { margin: 0; }
 .brand-mark::after {
   content: "";
   position: absolute; inset: 6px;
-  background: var(--surface-1);
+  background: var(--surface-2);
   border-radius: 4px;
 }
-.brand .brand-accent {
-  background: linear-gradient(135deg, var(--recovery), var(--strain));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
+/* Solid wordmark — no gradient text */
+.brand .brand-accent { color: var(--text); }
 
 /* Tabs in sidebar */
 .tabs {
@@ -204,7 +220,7 @@ p  { margin: 0; }
   appearance: none;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: 10px;
   color: var(--text-muted);
   text-align: left;
   padding: 10px 12px;
@@ -216,14 +232,13 @@ p  { margin: 0; }
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  transition: background 120ms, color 120ms, border-color 120ms;
+  transition: background 140ms, color 140ms;
 }
-.tab:hover { background: var(--surface-2); color: var(--text); }
+.tab:hover { background: var(--surface-3); color: var(--text); }
 .tab.active {
-  background: var(--surface-2);
-  color: var(--text);
-  border-color: var(--border);
-  box-shadow: inset 0 1px 0 var(--hairline);
+  background: var(--accent-soft);
+  color: var(--accent-2);
+  font-weight: 600;
 }
 .tab-icon {
   width: 18px; height: 18px;
@@ -235,13 +250,14 @@ p  { margin: 0; }
 }
 .tab-icon svg { width: 18px; height: 18px; stroke: currentColor; }
 
-/* Device dock — collapsed by default-ish */
+/* Device dock */
 #mvp-panel {
   margin-top: auto;
   padding: 14px;
-  border-radius: 16px;
-  background: linear-gradient(180deg, var(--surface-1) 0%, var(--surface-2) 100%);
+  border-radius: 14px;
+  background: var(--surface-1);
   border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -250,29 +266,30 @@ p  { margin: 0; }
 #mvp-panel strong { font-weight: 700; }
 #mvp-panel button {
   appearance: none;
-  background: var(--surface-3);
+  background: var(--surface-2);
   color: var(--text);
-  border: 1px solid var(--border-hi);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 6px 10px;
   font: 600 11px/1 var(--font);
   letter-spacing: 0.02em;
   cursor: pointer;
-  transition: background 120ms, border-color 120ms;
+  transition: background 140ms, border-color 140ms;
 }
-#mvp-panel button:hover { background: var(--surface-glow); border-color: rgba(255,255,255,0.18); }
-#mvp-panel button:disabled { opacity: 0.4; cursor: not-allowed; }
+#mvp-panel button:hover { background: var(--surface-3); border-color: var(--border-hi); }
+#mvp-panel button:disabled { opacity: 0.45; cursor: not-allowed; }
 #mvp-connect {
-  background: linear-gradient(180deg, var(--recovery) 0%, var(--recovery-2) 100%) !important;
-  color: #000 !important;
-  font-weight: 800 !important;
+  background: var(--accent) !important;
+  color: #fff !important;
+  font-weight: 700 !important;
   border: none !important;
   padding: 10px 14px !important;
   font-size: 12px !important;
-  letter-spacing: 0.04em !important;
-  text-transform: uppercase !important;
-  box-shadow: 0 0 0 1px rgba(22,236,6,0.4), 0 8px 24px -8px var(--recovery-glow) !important;
+  letter-spacing: 0.03em !important;
+  box-shadow: 0 6px 16px -6px var(--accent-ring) !important;
+  transition: background 140ms !important;
 }
+#mvp-connect:hover { background: var(--accent-2) !important; }
 
 .settings-btn {
   appearance: none;
@@ -286,6 +303,7 @@ p  { margin: 0; }
   cursor: pointer;
   display: flex; align-items: center; gap: 8px;
   margin-top: 8px;
+  transition: color 140ms, border-color 140ms;
 }
 .settings-btn:hover { color: var(--text); border-color: var(--border-hi); }
 
@@ -317,8 +335,8 @@ main.content {
   align-items: center;
   justify-content: space-between;
   padding: 0 0;
-  background: linear-gradient(180deg, var(--bg) 60%, transparent);
-  backdrop-filter: saturate(140%) blur(8px);
+  background: linear-gradient(180deg, var(--bg) 62%, transparent);
+  backdrop-filter: saturate(120%) blur(8px);
 }
 .top-bar-left, .top-bar-right { display: flex; align-items: center; gap: 14px; }
 
@@ -334,12 +352,12 @@ main.content {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.01em;
+  box-shadow: var(--shadow-sm);
 }
 .date-pill .dot {
   width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--recovery);
-  box-shadow: 0 0 8px var(--recovery-glow);
 }
 
 .location-badge {
@@ -361,8 +379,9 @@ main.content {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 120ms, color 120ms;
+  transition: background 140ms, color 140ms;
   position: relative;
+  box-shadow: var(--shadow-sm);
 }
 .icon-btn:hover { background: var(--surface-2); color: var(--text); }
 .icon-btn svg { width: 18px; height: 18px; }
@@ -390,13 +409,14 @@ main.content {
   border-radius: 999px;
   background: var(--surface-1);
   cursor: pointer;
-  transition: border-color 120ms, background 120ms;
+  transition: border-color 140ms, background 140ms;
+  box-shadow: var(--shadow-sm);
 }
 .user-profile:hover { background: var(--surface-2); border-color: var(--border-hi); }
 .avatar {
   width: 32px; height: 32px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--recovery), var(--strain));
-  color: var(--bg);
+  background: var(--accent);
+  color: #fff;
   font-weight: 800;
   font-size: 11px;
   display: inline-flex; align-items: center; justify-content: center;
@@ -427,51 +447,46 @@ main.content {
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
-.welcome-text {
-  background: linear-gradient(135deg, #FFFFFF, #B5B5BD);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
+/* Solid heading — no gradient text */
+.welcome-text { color: var(--text); }
 
 .controls { display: flex; gap: 8px; }
 .controls select, .controls input {
   appearance: none;
-  background: var(--surface-2);
+  background: var(--surface-1);
   color: var(--text);
   border: 1px solid var(--border);
   padding: 8px 12px;
   font: 600 12px var(--font);
   border-radius: 10px;
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
 }
 .controls select:hover { border-color: var(--border-hi); }
+.controls select:focus, .controls input:focus {
+  outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring);
+}
 
 /* ───────────────────────────────────────────────── */
 /* Cards                                              */
 /* ───────────────────────────────────────────────── */
 
 .card {
-  background: linear-gradient(180deg, var(--surface-1) 0%, #0B0B10 100%);
+  background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px 22px;
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 180ms, border-color 180ms;
 }
-.card::before {
-  /* subtle top-edge highlight */
-  content: "";
-  position: absolute; top: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--hairline), transparent);
-  pointer-events: none;
-}
+.card:hover { box-shadow: var(--shadow); }
 .card .card-eyebrow { margin-bottom: 14px; display: block; }
 .card .big-num {
   font-family: var(--font-display);
   font-size: 36px;
-  font-weight: 200;
+  font-weight: 300;
   line-height: 1;
   letter-spacing: -0.04em;
   color: var(--text);
@@ -488,13 +503,11 @@ main.content {
 }
 .card .muted { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
 
-/* Hero ring cards — Whoop-style */
+/* Hero ring cards */
 .card-hero {
   padding: 32px 24px 28px 24px;
   text-align: center;
-  background:
-    radial-gradient(80% 60% at 50% 0%, rgba(255,255,255,0.04), transparent 70%),
-    linear-gradient(180deg, var(--surface-1) 0%, #08080C 100%);
+  background: var(--surface-1);
 }
 
 /* ───────────────────────────────────────────────── */
@@ -522,17 +535,15 @@ main.content {
 @media (max-width: 720px) {
   body {
     grid-template-columns: 1fr;
-    /* Respect iOS safe-areas (notch on left in landscape, home indicator) */
     padding-left:  var(--sa-left);
     padding-right: var(--sa-right);
   }
   .sidebar { display: none; }
 
   main.content {
-    padding: 12px 14px calc(80px + var(--sa-bottom)) 14px; /* leave room for bottom nav */
+    padding: 12px 14px calc(80px + var(--sa-bottom)) 14px;
   }
 
-  /* Make topbar compact + respect status-bar inset */
   .top-bar {
     height: auto;
     min-height: 52px;
@@ -543,17 +554,14 @@ main.content {
   .user-profile { padding: 4px; }
   .date-pill { padding: 6px 10px; font-size: 11px; }
 
-  /* Panel header: smaller hero, no right-aligned date hugging */
   .panel-header { padding: 8px 0 16px 0; flex-direction: column; align-items: flex-start; gap: 10px; }
   .panel-header h1 { font-size: 26px; }
   .panel-subtitle { font-size: 13px; }
   .panel-date { font-size: 11px; }
 
-  /* All grids collapse to one column on phone */
   .grid { grid-template-columns: 1fr; gap: 12px; }
   .grid > .span-2, .grid > .span-3, .grid > .span-4 { grid-column: span 1; }
 
-  /* Hero ring trio stacks; ring smaller */
   .hero-ring-row { grid-template-columns: 1fr; gap: 12px; }
   .ring-wrap { width: 180px; height: 180px; }
   .ring-wrap.big { width: 220px; height: 220px; }
@@ -561,42 +569,36 @@ main.content {
   .ring-value .num.big { font-size: 72px; }
   .ring-value .num .unit { font-size: 22px; }
 
-  /* Cards: tighter padding */
   .card { padding: 16px 16px; }
   .card .card-eyebrow { margin-bottom: 10px; }
   .card .big-num { font-size: 28px; }
   h1 { font-size: 24px; }
   h2 { font-size: 18px; }
 
-  /* Live HR card: stack the now-grid below the bpm again */
   .now-tile { grid-template-columns: 1fr !important; gap: 12px !important; }
   .now-hr { font-size: 44px !important; }
   .now-grid { grid-template-columns: 1fr 1fr; }
 
-  /* Plan illustration smaller */
   #plan-zone { width: 44px !important; height: 44px !important; }
 
-  /* Charts shorter */
   .chart-wrap { height: 160px; }
   .chart-wrap.tall { height: 200px; }
 
-  /* Settings drawer takes full width on mobile */
   .drawer { width: 100vw; max-width: 100vw; padding: 24px 20px calc(24px + var(--sa-bottom)) 20px; }
 
-  /* Reveal mobile bottom nav */
   .mobile-nav { display: flex !important; }
 }
 
-/* Mobile bottom navigation — hidden on desktop, visible on phone */
+/* Mobile bottom navigation */
 .mobile-nav {
   display: none;
   position: fixed;
   bottom: 0; left: 0; right: 0;
   height: calc(64px + var(--sa-bottom));
   padding-bottom: var(--sa-bottom);
-  background: rgba(10, 10, 14, 0.92);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(140%) blur(20px);
+  -webkit-backdrop-filter: saturate(140%) blur(20px);
   border-top: 1px solid var(--border);
   justify-content: space-around;
   align-items: stretch;
@@ -618,14 +620,14 @@ main.content {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 6px 0;
-  transition: color 120ms;
+  transition: color 140ms;
 }
 .mobile-nav .mtab svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.mobile-nav .mtab.active { color: var(--recovery); }
+.mobile-nav .mtab.active { color: var(--accent); }
 .mobile-nav .mtab:active { transform: scale(0.92); }
 
 /* ───────────────────────────────────────────────── */
-/* Hero rings (Whoop-style)                            */
+/* Hero rings                                          */
 /* ───────────────────────────────────────────────── */
 
 .hero-ring-row {
@@ -640,14 +642,15 @@ main.content {
 .ring-card {
   padding: 28px 24px 24px 24px;
   text-align: center;
-  background:
-    radial-gradient(70% 60% at 50% 10%, rgba(255,255,255,0.05), transparent 70%),
-    linear-gradient(180deg, var(--surface-1) 0%, #08080C 100%);
+  background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 180ms;
 }
+.ring-card:hover { box-shadow: var(--shadow); }
 .ring-card .ring-eyebrow {
   font-size: 10px;
   font-weight: 700;
@@ -685,7 +688,7 @@ main.content {
 .ring-value .num {
   font-family: var(--font-display);
   font-size: 72px;
-  font-weight: 200;
+  font-weight: 300;
   letter-spacing: -0.05em;
   line-height: 1;
   color: var(--text);
@@ -722,12 +725,7 @@ main.content {
 }
 .ring-card .ring-foot strong { color: var(--text); font-weight: 600; }
 
-/* Sparkline — fixed-height wrapper prevents Chart.js (responsive +
-   maintainAspectRatio:false) from feedback-looping with the card's content
-   height and growing the canvas to tens of thousands of pixels.
-   Belt-and-braces: hard-cap the canvas itself with max-height + !important so
-   Chart.js's inline style can never override us (it sometimes writes
-   style.height directly during resize). */
+/* Sparkline wrapper */
 .ring-card .spark-wrap {
   position: relative;
   width: 100%;
@@ -759,7 +757,7 @@ main.content {
   gap: 4px;
   font-family: var(--font-display);
   font-size: 56px;
-  font-weight: 200;
+  font-weight: 300;
   letter-spacing: -0.04em;
   color: var(--text);
   line-height: 1;
@@ -808,14 +806,11 @@ main.content {
 /* ───────────────────────────────────────────────── */
 
 .plan-card {
-  background:
-    radial-gradient(80% 100% at 100% 0%, rgba(22,236,6,0.08), transparent 60%),
-    linear-gradient(180deg, var(--surface-1) 0%, #08080C 100%);
+  background: var(--surface-1);
 }
 .plan-illust {
   font-size: 36px; line-height: 1;
   margin-bottom: 6px;
-  filter: drop-shadow(0 0 24px rgba(255,255,255,0.1));
 }
 #plan-zone {
   font-family: var(--font-display);
@@ -853,7 +848,9 @@ main.content {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 10px 14px;
+  transition: background 140ms;
 }
+.workout-row:hover { background: var(--surface-3); }
 .workout-row .wo-time {
   font-size: 11px;
   color: var(--text-muted);
@@ -867,7 +864,7 @@ main.content {
 .workout-row .wo-strain {
   font-family: var(--font-display);
   font-size: 18px;
-  font-weight: 300;
+  font-weight: 500;
   color: var(--strain);
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
@@ -892,9 +889,9 @@ main.content {
   justify-content: center;
   flex-shrink: 0;
 }
-.insight.warn  .ins-icon { background: rgba(255,176,32,0.14); color: var(--warn); }
-.insight.info  .ins-icon { background: rgba(3,181,243,0.14); color: var(--strain); }
-.insight.critical .ins-icon { background: rgba(255,71,87,0.14); color: var(--bad); }
+.insight.warn  .ins-icon { background: rgba(217, 119, 6, 0.12); color: var(--warn); }
+.insight.info  .ins-icon { background: var(--accent-soft); color: var(--accent-2); }
+.insight.critical .ins-icon { background: rgba(220, 38, 38, 0.12); color: var(--bad); }
 .insight .ins-icon svg { width: 16px; height: 16px; }
 .insight .ins-title {
   font-size: 12px;
@@ -918,7 +915,7 @@ main.content {
 }
 .empty-state svg {
   width: 72px; height: 72px;
-  opacity: 0.4;
+  opacity: 0.35;
 }
 
 /* ───────────────────────────────────────────────── */
@@ -967,14 +964,13 @@ main.content {
 .stage-bars .v { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
 .stage-bars .barwrap {
   height: 8px;
-  background: var(--surface-3);
+  background: var(--track);
   border-radius: 999px;
   overflow: hidden;
 }
 .stage-bars .bar {
   height: 100%;
   border-radius: inherit;
-  box-shadow: 0 0 12px currentColor;
 }
 
 /* Component bars (Recovery tab) */
@@ -990,7 +986,7 @@ main.content {
 .component-row .val { color: var(--text); font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
 .component-row .barwrap {
   height: 8px;
-  background: var(--surface-3);
+  background: var(--track);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -1016,7 +1012,7 @@ main.content {
 .zone-cell .zval {
   font-family: var(--font-display);
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--text);
   margin-top: 4px;
   font-variant-numeric: tabular-nums;
@@ -1047,12 +1043,12 @@ table th {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--text-muted);
   background: var(--surface-2);
   position: sticky;
   top: 0;
 }
-table tr:hover td { background: rgba(255,255,255,0.02); }
+table tr:hover td { background: var(--surface-2); }
 table td { color: var(--text-2); }
 
 /* Calendar heatmap */
@@ -1072,13 +1068,13 @@ table td { color: var(--text-2); }
   padding: 6px 12px;
   font: 600 11px var(--font);
   cursor: pointer;
-  transition: all 120ms;
+  transition: all 140ms;
 }
 .journal-tag:hover { border-color: var(--border-hi); color: var(--text); }
 .journal-tag.active {
-  background: rgba(22,236,6,0.12);
-  border-color: var(--recovery);
-  color: var(--recovery);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-2);
 }
 #journal-text {
   width: 100%;
@@ -1091,7 +1087,7 @@ table td { color: var(--text-2); }
   resize: vertical;
   min-height: 70px;
 }
-#journal-text:focus { outline: none; border-color: var(--border-hi); }
+#journal-text:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
 #journal-date {
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -1099,19 +1095,20 @@ table td { color: var(--text-2); }
   color: var(--text);
   padding: 6px 10px;
   font: 12px var(--font);
-  color-scheme: dark;
+  color-scheme: light;
 }
 #journal-save {
   appearance: none;
-  background: var(--text);
-  color: var(--bg);
+  background: var(--accent);
+  color: #fff;
   border: none;
   border-radius: 10px;
   padding: 8px 16px;
   font: 700 12px var(--font);
   cursor: pointer;
+  transition: background 140ms;
 }
-#journal-save:hover { opacity: 0.9; }
+#journal-save:hover { background: var(--accent-2); }
 
 /* ───────────────────────────────────────────────── */
 /* Modals                                             */
@@ -1119,7 +1116,7 @@ table td { color: var(--text-2); }
 
 .modal-backdrop {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(15, 23, 42, 0.32);
   z-index: var(--z-modal);
   display: flex;
   align-items: center;
@@ -1133,6 +1130,7 @@ table td { color: var(--text-2); }
   padding: 28px 32px;
   max-width: 540px;
   width: 92%;
+  box-shadow: var(--shadow-md);
 }
 .modal-card h2 { margin-bottom: 12px; }
 
@@ -1142,7 +1140,7 @@ table td { color: var(--text-2); }
 
 .backdrop {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.65);
+  background: rgba(15, 23, 42, 0.32);
   backdrop-filter: blur(4px);
   z-index: 90;
   display: none;
@@ -1155,7 +1153,7 @@ table td { color: var(--text-2); }
   width: 420px;
   max-width: 92vw;
   height: 100vh;
-  background: linear-gradient(180deg, var(--surface-1) 0%, #0A0A0E 100%);
+  background: var(--surface-1);
   border-left: 1px solid var(--border);
   padding: 28px 32px;
   z-index: 100;
@@ -1165,11 +1163,8 @@ table td { color: var(--text-2); }
   overflow-y: auto;
   transform: translateX(100%);
   visibility: hidden;
-  /* Keep the drawer in the layout (display:flex) and slide it with transform so
-     the transition actually plays; delay visibility:hidden until the slide-out
-     finishes so it isn't interactive while open. */
   transition: transform 240ms ease, visibility 0s linear 240ms;
-  box-shadow: -16px 0 48px rgba(0,0,0,0.5);
+  box-shadow: -16px 0 48px rgba(15, 23, 42, 0.14);
 }
 .drawer.open {
   transform: translateX(0);
@@ -1191,7 +1186,7 @@ table td { color: var(--text-2); }
 }
 .close-btn {
   appearance: none;
-  background: var(--surface-3);
+  background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 10px;
   width: 36px; height: 36px;
@@ -1235,13 +1230,13 @@ table td { color: var(--text-2); }
 }
 .settings-form input:focus, .settings-form select:focus {
   outline: none;
-  border-color: var(--strain);
-  box-shadow: 0 0 0 3px rgba(3,181,243,0.18);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 .settings-form .primary {
   appearance: none;
-  background: var(--text);
-  color: var(--bg);
+  background: var(--accent);
+  color: #fff;
   border: none;
   border-radius: 12px;
   padding: 12px 18px;
@@ -1250,9 +1245,9 @@ table td { color: var(--text-2); }
   font-weight: 700;
   cursor: pointer;
   margin-top: 4px;
-  transition: opacity 120ms;
+  transition: background 140ms;
 }
-.settings-form .primary:hover { opacity: 0.85; }
+.settings-form .primary:hover { background: var(--accent-2); }
 .settings-form .hint {
   font-size: 11px;
   color: var(--text-faint);
@@ -1273,15 +1268,16 @@ table td { color: var(--text-2); }
 }
 .drawer .actions button {
   appearance: none;
-  background: var(--surface-3);
-  border: 1px solid var(--border-hi);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   color: var(--text);
   padding: 10px 14px;
   border-radius: 10px;
   font: 600 12px var(--font);
   cursor: pointer;
+  transition: background 140ms;
 }
-.drawer .actions button:hover { background: var(--surface-glow); }
+.drawer .actions button:hover { background: var(--surface-3); }
 .drawer .actions .hint { font-size: 11px; color: var(--text-muted); }
 
 /* Live tab — Device events log + Session stats */
@@ -1311,7 +1307,7 @@ table td { color: var(--text-2); }
 .ev .kind {
   display: inline-block;
   padding: 2px 8px;
-  background: var(--surface-3);
+  background: var(--surface-2);
   border-radius: 4px;
   font-size: 10px;
   font-weight: 700;
@@ -1320,12 +1316,27 @@ table td { color: var(--text-2); }
   color: var(--text-muted);
 }
 
+/* Primary action button (coach Send, wake alarm, etc.) */
+.primary {
+  appearance: none;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font: 700 13px var(--font);
+  cursor: pointer;
+  transition: background 140ms;
+}
+.primary:hover { background: var(--accent-2); }
+.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* Misc */
 .muted { color: var(--text-muted); }
 .big-num { font-family: var(--font-display); }
 .unit { font-size: 0.5em; color: var(--text-muted); font-weight: 600; margin-left: 4px; }
 
-/* Hide some clutter in the BT panel when disconnected */
+/* BT panel details */
 #mvp-panel #mvp-spo2, #mvp-panel #mvp-temp, #mvp-panel #mvp-rr,
 #mvp-panel #mvp-hr {
   font-variant-numeric: tabular-nums;
@@ -1341,7 +1352,7 @@ table td { color: var(--text-2); }
 #mvp-panel details[open] > summary::before { content: "▾ "; }
 #mvp-panel details:not([open]) > summary::before { content: "▸ "; }
 
-/* Make export buttons compact + outline-only */
+/* Compact outline export buttons */
 #mvp-panel button[id^="mvp-export"], #mvp-panel #mvp-import, #mvp-panel #mvp-reset {
   background: transparent !important;
   color: var(--text-muted) !important;
