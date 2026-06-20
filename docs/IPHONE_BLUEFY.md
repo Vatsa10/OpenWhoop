@@ -1,4 +1,4 @@
-# openwhoop on iPhone — **truly free forever, phone-only**
+# OpenWhoop on iPhone — **truly free forever, phone-only**
 
 This is the recommended install path for iOS 17.1+, where TrollStore is
 blocked and AltStore needs a Mac on the same Wi-Fi every week.
@@ -53,14 +53,14 @@ npm run deploy
 
 The first time, wrangler asks:
 - **Create new project?** → Yes
-- **Project name?** → press Enter to accept `openwhoop`
+- **Project name?** → press Enter to accept `OpenWhoop`
 - **Production branch?** → press Enter to accept `main`
 
 After 10–20 seconds it prints:
 
 ```
 ✨  Deployment complete! Take a peek over at
-    https://getopenwhoop.pages.dev
+    https://openwhoop.pages.dev
 ```
 
 That's your permanent URL. Bookmark it.
@@ -68,7 +68,7 @@ That's your permanent URL. Bookmark it.
 ### 3. Open in Bluefy on iPhone (30 seconds)
 
 1. Open **Bluefy** on iPhone
-2. Tap the address bar, type your URL: `getopenwhoop.pages.dev` (or
+2. Tap the address bar, type your URL: `openwhoop.pages.dev` (or
    whichever name Cloudflare gave you)
 3. The full dashboard loads
 
@@ -76,7 +76,7 @@ That's your permanent URL. Bookmark it.
 
 Tap Bluefy's share icon → **Add to Home Screen** → **Add**.
 
-You now have a `openwhoop` icon on your Home Screen. Tapping it
+You now have a `OpenWhoop` icon on your Home Screen. Tapping it
 opens Bluefy directly to the dashboard with Web Bluetooth working.
 
 When you tap **Connect Whoop**, you'll see iOS's standard Bluetooth
@@ -113,7 +113,7 @@ SW switch in commit `a08658d` made HTML/JS/CSS network-first).
 
 ## Troubleshooting
 
-**"Bluefy can't connect to getopenwhoop.pages.dev"**
+**"Bluefy can't connect to openwhoop.pages.dev"**
 → Cloudflare's free tier sometimes takes 30–60 seconds to propagate the
 first deploy. Wait a minute and refresh.
 
@@ -147,7 +147,7 @@ even on the free tier. You'll need to own the domain.
 iPhone (no Mac involved after step 2)
 └── Bluefy app (free, App Store)
     └── WKWebView + custom Web Bluetooth implementation
-        └── https://getopenwhoop.pages.dev  ← Cloudflare Pages CDN
+        └── https://openwhoop.pages.dev  ← Cloudflare Pages CDN
             └── /web (your dashboard)
                 └── navigator.bluetooth.requestDevice(...)
                     └── Bluefy's BLE bridge

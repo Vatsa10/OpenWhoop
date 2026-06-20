@@ -12,13 +12,8 @@ build/
 dist/
 .ruff_cache/
 node_modules/
+vendor/
 .claude/
-
-# Next.js
-.next/
-out/
-*.tsbuildinfo
-next-env.d.ts
 
 # Cloudflare Wrangler local cache
 .wrangler/

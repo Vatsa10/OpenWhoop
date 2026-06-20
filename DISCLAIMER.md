@@ -5,7 +5,7 @@ interoperability purposes only.**
 
 ## No affiliation
 
-`openwhoop` is an independent, unofficial, third-party project. It is **not**
+OpenWhoop is an independent, unofficial, third-party project. It is **not**
 affiliated with, endorsed by, sponsored by, or in any way connected to
 **WHOOP, Inc.** or any of its subsidiaries, partners, or affiliates.
 

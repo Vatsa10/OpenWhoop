@@ -1,12 +1,12 @@
 # WHOOP 5.0 skin-temp / respiratory — candidate capture
 
 WHOOP 5.0 ("Puffin") straps carry sensors the 4.0 didn't expose over BLE:
-skin temperature and respiratory rate. openwhoop **captures the raw candidate
+skin temperature and respiratory rate. OpenWhoop **captures the raw candidate
 packets** that carry them, but does **not** decode a temperature or RPM value —
 because the byte layout is not yet confirmed against a real strap.
 
 This doc records what is known (so the offsets can be verified later) and what
-openwhoop deliberately does *not* do (so nobody ships a fabricated reading).
+OpenWhoop deliberately does *not* do (so nobody ships a fabricated reading).
 
 ## Why we don't decode yet
 
@@ -17,10 +17,10 @@ strings. Its live BLE path doesn't decode K18/K24 at all; it mirrors the raw
 packets to a SQLite table (`k_revision` column) for **offline** analysis. So
 there is no confirmed decode to port — only a capture-and-classify scaffold.
 
-openwhoop's CLAUDE.md forbids speculative/fabricated code, so we match goose's
+OpenWhoop's CLAUDE.md forbids speculative/fabricated code, so we match goose's
 *honest* behaviour: classify, capture, surface for analysis. No value math.
 
-## What openwhoop does (shipped)
+## What OpenWhoop does (shipped)
 
 - **Acquires the diag characteristic** (slot `0007`, both families) when present.
   Optional — its absence never aborts a connection.
@@ -70,7 +70,7 @@ encodings, 20–45 °C gate) is an exploratory search, not a decode — not port
 
 goose sends `GET_DATA_RANGE` (cmd 34) and waits for its response before
 `SEND_HISTORICAL_DATA` (cmd 22) — a request/response handshake that helps elicit
-the candidate packets. openwhoop has `getDataRange()` plumbed but does **not** insert
+the candidate packets. OpenWhoop has `getDataRange()` plumbed but does **not** insert
 it into `downloadHistory()`, because the handshake *timing* can't be validated
 without a strap and an unsequenced cmd-34 could disrupt the working sync. Add it
 (awaiting the range response) once a strap is available to test against.

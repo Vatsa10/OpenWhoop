@@ -38,7 +38,7 @@ function metricsLine(metrics) {
 
 function systemPrompt(metrics) {
   return [
-    'You are the in-app recovery coach for "openwhoop", a WHOOP-style wearable app.',
+    'You are the in-app recovery coach for "OpenWhoop", a WHOOP-style wearable app.',
     "Answer the user's question in 2-4 short sentences, grounded in their numbers below.",
     'Recovery and sleep_performance are 0-100 (higher better). strain is 0-21.',
     'stress_avg is 0-100 (higher = more stressed). Reference the actual values when relevant.',

@@ -1,4 +1,4 @@
-# openwhoop native iOS (Capacitor) — overnight background BLE
+# OpenWhoop native iOS (Capacitor) — overnight background BLE
 
 The web PWA can only talk to a strap while the tab is foregrounded. **True
 overnight capture needs a native shell** so iOS keeps the Bluetooth session
@@ -30,7 +30,7 @@ npm run cap:open                 # opens the project in Xcode
 Capacitor won't add background entitlements for you. In Xcode:
 
 1. **Signing & Capabilities** → select your free Apple ID team → set a unique
-   bundle id (e.g. `dev.<you>.openwhoop`). Then **+ Capability ▸ Background Modes**
+   bundle id (e.g. `dev.<you>.OpenWhoop`). Then **+ Capability ▸ Background Modes**
    and tick **Uses Bluetooth LE accessories** (this is what survives free
    provisioning; it writes `UIBackgroundModes` for you).
 
@@ -42,7 +42,7 @@ Capacitor won't add background entitlements for you. In Xcode:
      <string>bluetooth-central</string>
    </array>
    <key>NSBluetoothAlwaysUsageDescription</key>
-   <string>openwhoop reads heart rate and recovery data from your WHOOP strap, including overnight.</string>
+   <string>OpenWhoop reads heart rate and recovery data from your WHOOP strap, including overnight.</string>
    ```
 
 3. **State restoration** — so iOS relaunches the app and hands back the strap
@@ -81,7 +81,7 @@ Capacitor won't add background entitlements for you. In Xcode:
 `web/` is bundled locally, so BLE + all metrics work fully offline. The Coach
 tab calls `/api/coach`, a Cloudflare Pages Function — unreachable from the
 `capacitor://` origin. To use Coach in the native app, either set
-`server.url` in `capacitor.config.json` to `https://getopenwhoop.pages.dev` (loads
+`server.url` in `capacitor.config.json` to `https://openwhoop.pages.dev` (loads
 the live PWA; needs connectivity) or point the coach fetch at an absolute base
 URL. Left local-only by default so the core tracker has no network dependency.
 

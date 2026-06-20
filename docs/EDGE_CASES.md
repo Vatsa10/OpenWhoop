@@ -1,4 +1,4 @@
-# Edge Cases & How openwhoop Handles Them
+# Edge Cases & How OpenWhoop Handles Them
 
 A grimoire of edge cases we've thought about and what the code does about
 them. Add to this file whenever you discover a new one in the wild.
