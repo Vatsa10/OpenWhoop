@@ -38,7 +38,7 @@
     <span class="brand-mark"></span>
     <span class="brand-accent">OpenWhoop</span>
   </div>
-  <a href="/" style="display:block; font-size:11px; color:var(--muted); text-decoration:none; padding:0 0 8px 0; opacity:.7;">← Home</a>
+  <a href="/" class="home-link">← Home</a>
 
   <nav class="tabs">
     <button class="tab" data-tab="overview">
@@ -71,40 +71,28 @@
     </button>
   </nav>
 
-  <!-- BLE connection card inside sidebar -->
+  <!-- BLE connection dock -->
   <div id="mvp-panel">
-    <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px;">
-      <strong style="font-weight:600; letter-spacing:0.5px;">Bluetooth</strong>
-      <span id="mvp-status" style="font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase;">disconnected</span>
+    <div class="dock-head">
+      <strong>Bluetooth</strong>
+      <span id="mvp-status">disconnected</span>
     </div>
-    
-    <div style="display:flex; align-items:baseline; gap:4px; margin:4px 0 2px 0;">
-      <span id="mvp-hr" style="font-size:24px; font-weight:700; line-height:1; letter-spacing:-0.5px;">—</span>
-      <span style="font-size:12px; color:var(--muted);">bpm</span>
+
+    <div class="dock-hr">
+      <span id="mvp-hr" class="n">—</span>
+      <span class="u">bpm</span>
     </div>
-    
-    <div style="display:flex; justify-content:space-between; margin: 8px 0 10px 0; padding-top: 8px; border-top: 1px solid var(--border);">
-      <div style="display:flex; flex-direction:column; gap:2px;">
-        <span style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">SpO₂</span>
-        <span id="mvp-spo2" style="font-size:14px; font-weight:600; color:var(--fg); font-variant-numeric:tabular-nums;">—</span>
-      </div>
-      <div style="display:flex; flex-direction:column; gap:2px;">
-        <span style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Temp</span>
-        <span id="mvp-temp" style="font-size:14px; font-weight:600; color:var(--fg); font-variant-numeric:tabular-nums;">—</span>
-      </div>
-      <div style="display:flex; flex-direction:column; gap:2px; text-align:right;">
-        <span style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">RR Int</span>
-        <span id="mvp-rr" style="font-size:14px; font-weight:600; color:var(--fg); font-variant-numeric:tabular-nums;">—</span>
-      </div>
+
+    <div class="dock-vitals">
+      <div class="dock-vital"><span class="k">SpO₂</span><span id="mvp-spo2" class="v">—</span></div>
+      <div class="dock-vital"><span class="k">Temp</span><span id="mvp-temp" class="v">—</span></div>
+      <div class="dock-vital"><span class="k">RR Int</span><span id="mvp-rr" class="v">—</span></div>
     </div>
-    
-    <div style="font-size:11px; color:var(--muted);">
-      Session: <span id="mvp-count" style="font-variant-numeric:tabular-nums; font-weight:600;">0</span> pkts
-    </div>
-    
-    <div id="mvp-error" style="font-size:11px; color:var(--rec-bad); display:none; word-break:break-word;"></div>
-    
-    <div style="display:flex; gap:8px; font-size:11px; color:var(--muted); margin: 2px 0;">
+
+    <div class="dock-session">Session: <span id="mvp-count">0</span> pkts</div>
+    <div id="mvp-error" style="display:none;"></div>
+
+    <div class="dock-indicators">
       <span id="mvp-wrist" title="wrist worn">⚪ Wrist</span>
       <span id="mvp-charge" title="charging state">⚪ Charge</span>
       <span id="mvp-rtc" title="strap clock sync">⚪ Clock</span>
@@ -112,115 +100,103 @@
 
     <button id="mvp-connect">Connect Whoop</button>
     <button id="mvp-disconnect" style="display:none;">Disconnect</button>
-    <button id="mvp-sync-now" style="display:none; font-size:10px; margin-top:2px;">Sync from strap now</button>
-    <button id="mvp-capture" style="display:none; font-size:10px; margin-top:2px;">📸 Capture raw packets</button>
+    <button id="mvp-sync-now" class="sm" style="display:none;">Sync from strap now</button>
+    <button id="mvp-capture" class="sm" style="display:none;">📸 Capture raw packets</button>
 
-    <details id="mvp-diag-details" style="display:none; font-size:11px; margin-top:4px;">
-      <summary style="cursor:pointer; color:var(--muted);">Diagnostics</summary>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-top:4px;">
-        <button id="diag-hello" style="font-size:10px;">Hello</button>
-        <button id="diag-battery" style="font-size:10px;">Battery</button>
-        <button id="diag-clock" style="font-size:10px;">Clock</button>
-        <button id="diag-range" style="font-size:10px;">Data range</button>
-        <button id="diag-haptic" style="font-size:10px;">Haptic 🔔</button>
-        <button id="diag-imu" style="font-size:10px;">Raw IMU</button>
-        <button id="diag-batt-ext" style="font-size:10px;">Batt extended</button>
-        <button id="diag-hr-profile" style="font-size:10px;">HR profile</button>
+    <details id="mvp-diag-details" style="display:none;">
+      <summary>Diagnostics</summary>
+      <div class="dock-grid">
+        <button id="diag-hello">Hello</button>
+        <button id="diag-battery">Battery</button>
+        <button id="diag-clock">Clock</button>
+        <button id="diag-range">Data range</button>
+        <button id="diag-haptic">Haptic 🔔</button>
+        <button id="diag-imu">Raw IMU</button>
+        <button id="diag-batt-ext">Batt extended</button>
+        <button id="diag-hr-profile">HR profile</button>
       </div>
-      <div id="diag-output" style="font-size:10px; color:var(--muted); margin-top:4px; min-height:1em; white-space:pre-wrap; max-height:60px; overflow-y:auto; font-family:monospace;"></div>
+      <div id="diag-output" class="dock-mono"></div>
     </details>
 
-<details id="mvp-captures-details" style="font-size:11px; margin-top:4px;">
-      <summary style="cursor:pointer; color:var(--muted);">📚 Saved captures <span id="captures-count" style="font-variant-numeric:tabular-nums;">(0)</span></summary>
-      <div id="captures-list" style="font-size:10px; color:var(--muted); margin-top:4px; max-height:120px; overflow-y:auto;"></div>
+    <details id="mvp-captures-details">
+      <summary>📚 Saved captures <span id="captures-count">(0)</span></summary>
+      <div id="captures-list" class="dock-mono"></div>
     </details>
 
-    <details id="mvp-log-details" style="display:none; font-size:11px; margin-top:4px;">
-      <summary style="cursor:pointer; color:var(--muted);">Console log <span id="mvp-log-count" style="font-variant-numeric:tabular-nums;">(0)</span></summary>
-      <div id="mvp-log-body" style="font-size:10px; color:var(--muted); margin-top:4px; max-height:120px; overflow-y:auto; font-family:monospace; white-space:pre-wrap; word-break:break-all;"></div>
+    <details id="mvp-log-details" style="display:none;">
+      <summary>Console log <span id="mvp-log-count">(0)</span></summary>
+      <div id="mvp-log-body" class="dock-mono"></div>
     </details>
 
-    <div id="mvp-stats" style="display:none; font-size:10px; color:var(--muted); margin-top:4px; justify-content:space-between;">
-      <span>RR coverage: <span id="mvp-rr-coverage" style="font-variant-numeric:tabular-nums; color:var(--fg);">—</span></span>
-      <span>Pkts/s: <span id="mvp-pkt-rate" style="font-variant-numeric:tabular-nums; color:var(--fg);">—</span></span>
+    <div id="mvp-stats" style="display:none;">
+      <span>RR coverage: <span id="mvp-rr-coverage" class="v">—</span></span>
+      <span>Pkts/s: <span id="mvp-pkt-rate" class="v">—</span></span>
     </div>
 
-    <div id="mvp-health" style="font-size:10px; color:var(--text-faint); margin-top:4px; cursor:pointer; opacity:0.7;" title="Click for full data integrity report">
+    <div id="mvp-health" title="Click for full data integrity report">
       <span id="mvp-health-dot">⚪</span> <span id="mvp-health-msg">—</span>
     </div>
-    
-    <div style="border-top:1px solid var(--border); margin:4px 0 2px 0;"></div>
-    
-    <div style="display:flex; gap:4px; flex-wrap:wrap;">
+
+    <div class="dock-divider"></div>
+
+    <div class="dock-export dock-actions">
       <button id="mvp-export" title="Export all data as JSON">JSON</button>
-      <button id="mvp-export-samples-csv" style="font-size:10px;" title="Export raw samples as CSV">Samples CSV</button>
-      <button id="mvp-export-daily-csv" style="font-size:10px;" title="Export daily metrics as CSV">Daily CSV</button>
-      <button id="mvp-export-journal-csv" style="font-size:10px;" title="Export journal entries as CSV">Journal CSV</button>
-      <button id="mvp-export-workouts-csv" style="font-size:10px;" title="Export detected workouts as CSV">Workouts CSV</button>
+      <button id="mvp-export-samples-csv" title="Export raw samples as CSV">Samples CSV</button>
+      <button id="mvp-export-daily-csv" title="Export daily metrics as CSV">Daily CSV</button>
+      <button id="mvp-export-journal-csv" title="Export journal entries as CSV">Journal CSV</button>
+      <button id="mvp-export-workouts-csv" title="Export detected workouts as CSV">Workouts CSV</button>
       <button id="mvp-import">Import</button>
-      <button id="mvp-reset" title="Clear all local data" style="font-size:10px;">Reset</button>
+      <button id="mvp-reset" title="Clear all local data">Reset</button>
     </div>
     <input id="mvp-import-file" type="file" accept="application/json" style="display:none;"/>
-    <div id="mvp-data-status" style="font-size:10px; color:var(--muted); min-height:1em; text-align:center;"></div>
+    <div id="mvp-data-status" class="dock-data-status"></div>
 
-    <div style="border-top:1px solid var(--border); margin:6px 0 2px 0; padding-top:6px;">
-      <div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px;">Apple Health</div>
-      <div style="font-size:11px; display:flex; justify-content:space-between;">
-        <span>Weight:</span>
-        <span id="mvp-weight" style="font-weight:600; font-variant-numeric:tabular-nums;">—</span>
-      </div>
-      <div style="display:flex; gap:6px; margin-top:4px; flex-wrap:wrap;">
-        <button id="mvp-pull-weight" style="font-size:10px;">📱 iPhone</button>
-        <button id="mvp-scale" style="font-size:10px;">⚖️ Scale</button>
-        <button id="mvp-manual-weight" style="font-size:10px;">✎</button>
-        <button id="mvp-health-import-btn" style="font-size:10px;">📄 Import</button>
-        <button id="mvp-health-setup" style="font-size:10px;">Setup…</button>
+    <div class="dock-section">
+      <div class="field-label" style="margin-bottom:3px;">Apple Health</div>
+      <div class="dock-weight"><span>Weight:</span><span id="mvp-weight" class="tnum">—</span></div>
+      <div class="dock-actions" style="margin-top:4px;">
+        <button id="mvp-pull-weight">📱 iPhone</button>
+        <button id="mvp-scale">⚖️ Scale</button>
+        <button id="mvp-manual-weight">✎</button>
+        <button id="mvp-health-import-btn">📄 Import</button>
+        <button id="mvp-health-setup">Setup…</button>
       </div>
       <input id="mvp-health-import" type="file" accept=".xml,text/xml,application/xml" style="display:none;"/>
     </div>
   </div>
 
   <!-- Apple Health setup modal -->
-  <div id="health-setup" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(15,23,42,0.32); backdrop-filter:blur(4px); z-index:1000; justify-content:center; align-items:center;">
-    <div style="background:var(--bg); color:var(--fg); padding:24px; max-width:520px; border:1px solid var(--border); border-radius:8px;">
-      <h2 style="margin-top:0;">Apple Health Sync</h2>
-      <p style="font-size:13px; line-height:1.5; color:var(--muted);">
-        OpenWhoop runs entirely on your phone — these import your Apple Health data
-        with no server and nothing leaving the device.
-      </p>
+  <div id="health-setup" class="modal-backdrop" style="display:none;">
+    <div class="modal-card">
+      <h2>Apple Health Sync</h2>
+      <p>OpenWhoop runs entirely on your phone — these import your Apple Health data with no server and nothing leaving the device.</p>
 
-      <h3 style="font-size:13px; margin:14px 0 4px;">📄 Import export.xml (full history)</h3>
-      <ol style="font-size:13px; line-height:1.6; margin-top:2px;">
+      <h3>📄 Import export.xml (full history)</h3>
+      <ol>
         <li>iPhone <strong>Health app → profile photo → Export All Health Data</strong>.</li>
         <li>Unzip the file, then tap <strong>📄 Import</strong> and pick <code>export.xml</code>.</li>
       </ol>
-      <p style="font-size:12px; color:var(--muted); margin-top:2px;">
-        Reads Body Mass, Height, Resting HR, VO₂ Max, Steps and more. Parsed on-device.
-      </p>
+      <p class="fs-12" style="margin-top:2px;">Reads Body Mass, Height, Resting HR, VO₂ Max, Steps and more. Parsed on-device.</p>
 
-      <h3 style="font-size:13px; margin:14px 0 4px;">📱 One-tap Shortcut (live values)</h3>
-      <p style="font-size:13px; line-height:1.5; margin-top:2px;">
-        Install a Shortcut that reads the metrics you want and opens
-        <code style="font-size:11px;">…/#health=&lt;data&gt;</code> back into OpenWhoop. Then tap
-        <strong>📱 iPhone</strong> any time to pull the latest. Works in Safari and Bluefy.
-      </p>
+      <h3>📱 One-tap Shortcut (live values)</h3>
+      <p style="margin-top:2px;">Install a Shortcut that reads the metrics you want and opens <code>…/#health=&lt;data&gt;</code> back into OpenWhoop. Then tap <strong>📱 iPhone</strong> any time to pull the latest. Works in Safari and Bluefy.</p>
 
       <details style="margin-top:14px;">
-        <summary style="font-size:12px; color:var(--muted); cursor:pointer;">Advanced: live LAN sync via Health Auto Export</summary>
-        <ol style="font-size:12px; line-height:1.6; margin-top:6px;">
+        <summary class="muted fs-12" style="cursor:pointer;">Advanced: live LAN sync via Health Auto Export</summary>
+        <ol class="fs-12">
           <li>Run <code>./run.sh dash --host 0.0.0.0</code> on this Mac.</li>
-          <li>In <a href="https://www.healthyapps.dev/health-auto-export" target="_blank" style="color:var(--fg);">Health Auto Export</a> → <strong>Automations → REST API</strong>, paste:
-            <code id="mvp-ingest-url" style="display:block; padding:6px; background:var(--card); margin:4px 0; word-break:break-all; font-size:11px;"></code>
+          <li>In <a href="https://www.healthyapps.dev/health-auto-export" target="_blank">Health Auto Export</a> → <strong>Automations → REST API</strong>, paste:
+            <code id="mvp-ingest-url" style="display:block; padding:6px; margin:4px 0; word-break:break-all;"></code>
           </li>
           <li>Pick <em>Body Mass, Height, Resting Heart Rate, VO2 Max</em> and save. Only works while the Mac server is running on the same Wi-Fi.</li>
         </ol>
       </details>
 
-      <button id="mvp-health-close" style="float:right; margin-top:10px;">Close</button>
+      <button id="mvp-health-close" class="primary" style="float:right; margin-top:10px;">Close</button>
     </div>
   </div>
 
-  <button class="settings-btn" id="open-settings" style="margin-top:0;">⚙ Settings</button>
+  <button class="settings-btn" id="open-settings">⚙ Settings</button>
   <div class="status-line" id="status-line">…</div>
 </aside>
 
@@ -294,8 +270,7 @@
       </div>
     </div>
 
-    <!-- "My Day" section -->
-    <div style="display:flex; align-items:center; justify-content:space-between; margin: 32px 0 16px 0;">
+    <div class="section-head">
       <h2>My day</h2>
       <span class="eyebrow">live · biometrics</span>
     </div>
@@ -303,8 +278,8 @@
     <div class="grid">
       <div class="card span-2">
         <span class="card-eyebrow">Live heart rate</span>
-        <div class="now-tile" style="grid-template-columns: auto 1fr; gap: 24px;">
-          <div class="now-hr" style="font-size:64px;">
+        <div class="now-tile">
+          <div class="now-hr">
             <span id="now-hr">—</span><span class="unit">bpm</span>
             <span class="heart-pulse">
               <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/></svg>
@@ -321,21 +296,20 @@
 
       <div class="card span-2" id="wake-alarm-card">
         <span class="card-eyebrow">⏰ Wake alarm</span>
-        <div style="display:flex; align-items:baseline; gap:10px; margin-top:6px;">
-          <input id="wake-alarm-time" type="time" value="07:00"
-                 style="background:var(--card); color:var(--fg); border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:28px; font-weight:700; font-family:var(--font-display); font-variant-numeric:tabular-nums; letter-spacing:-0.5px; width:auto;"/>
-          <span id="wake-alarm-when" style="font-size:11px; color:var(--muted);">Tomorrow morning</span>
+        <div class="alarm-row">
+          <input id="wake-alarm-time" class="alarm-time" type="time" value="07:00" />
+          <span id="wake-alarm-when" class="muted fs-11">Tomorrow morning</span>
         </div>
-        <div style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
-          <button id="wake-alarm-set" class="primary" style="flex:1; min-width:90px;">Set alarm</button>
-          <button id="wake-alarm-off" style="font-size:11px;">Disable</button>
-          <button id="wake-alarm-test" style="font-size:11px;" title="Buzz the strap now to test">Test buzz</button>
+        <div class="alarm-actions">
+          <button id="wake-alarm-set" class="primary">Set alarm</button>
+          <button id="wake-alarm-off">Disable</button>
+          <button id="wake-alarm-test" title="Buzz the strap now to test">Test buzz</button>
         </div>
-        <div id="wake-alarm-status" style="font-size:11px; color:var(--muted); margin-top:8px; min-height:1.2em;">Connect your strap to arm an alarm.</div>
-        <div style="border-top:1px solid var(--border); margin-top:10px; padding-top:8px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <div style="font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Strap clock</div>
-          <div id="wake-clock-drift" style="font-size:11px; font-variant-numeric:tabular-nums; color:var(--muted);">—</div>
-          <button id="wake-clock-sync" style="font-size:10px;" title="Resync the strap's RTC to this device's clock">Resync</button>
+        <div id="wake-alarm-status">Connect your strap to arm an alarm.</div>
+        <div class="alarm-clock">
+          <div class="field-label">Strap clock</div>
+          <div id="wake-clock-drift">—</div>
+          <button id="wake-clock-sync" title="Resync the strap's RTC to this device's clock">Resync</button>
         </div>
       </div>
 
@@ -367,7 +341,7 @@
 
       <div class="card card-insights span-2" id="insights-card">
         <span class="card-eyebrow">Insights</span>
-        <div id="insights-list" style="display:flex; flex-direction:column; gap:8px; margin-top:6px;"></div>
+        <div id="insights-list"></div>
       </div>
 
       <div class="card span-2">
@@ -387,9 +361,9 @@
 
       <div class="card span-4" id="journal-card">
         <div class="card-eyebrow">Activity journal</div>
-        <div style="display:flex; gap:6px; align-items:flex-start; margin-top:6px; flex-wrap:wrap;">
-          <div style="flex:1; min-width:200px;">
-            <div style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:6px;" id="journal-tags">
+        <div class="journal-grid">
+          <div class="journal-compose">
+            <div class="journal-tags" id="journal-tags">
               <button class="journal-tag" data-tag="alcohol" title="Alcohol consumed">🍺 Alcohol</button>
               <button class="journal-tag" data-tag="illness" title="Sick or unwell">🤒 Illness</button>
               <button class="journal-tag" data-tag="stress" title="High mental or emotional stress">😰 Stress</button>
@@ -402,15 +376,15 @@
               <button class="journal-tag" data-tag="cold" title="Cold exposure — ice bath, cold shower">🧊 Cold</button>
               <button class="journal-tag" data-tag="nap" title="Took a nap during the day">😴 Nap</button>
             </div>
-            <textarea id="journal-text" placeholder="Add a note for today…" style="width:100%; box-sizing:border-box; min-height:60px; background:var(--card); color:var(--fg); border:1px solid var(--border); border-radius:6px; padding:6px; font-family:inherit; font-size:11px; resize:vertical;"></textarea>
+            <textarea id="journal-text" class="journal-input" placeholder="Add a note for today…"></textarea>
           </div>
-          <div style="display:flex; flex-direction:column; gap:4px;">
-            <input id="journal-date" type="date" title="Date for this entry (defaults to today)" style="background:var(--card); color:var(--fg); border:1px solid var(--border); border-radius:6px; padding:4px 6px; font-family:inherit; font-size:11px; cursor:pointer;">
-            <button id="journal-save" style="white-space:nowrap;">Save note</button>
-            <span id="journal-status" style="font-size:10px; color:var(--muted);"></span>
+          <div class="journal-side">
+            <input id="journal-date" class="journal-date" type="date" title="Date for this entry (defaults to today)">
+            <button id="journal-save">Save note</button>
+            <span id="journal-status"></span>
           </div>
         </div>
-        <div id="journal-history" style="margin-top:8px; font-size:11px; color:var(--muted);"></div>
+        <div id="journal-history"></div>
         <div id="tag-correlations"></div>
       </div>
     </div>
@@ -426,36 +400,27 @@
       <span class="panel-date" id="recovery-date"></span>
     </header>
     <div class="grid">
-      <div class="ring-card recovery span-2" style="display:flex; flex-direction:column;">
+      <div class="ring-card recovery col span-2">
         <div class="ring-eyebrow">This morning</div>
-        <div class="ring-wrap big" style="margin: 18px auto;">
+        <div class="ring-wrap big center">
           <svg id="recovery-ring-big" viewBox="0 0 300 300"></svg>
           <div class="ring-value">
             <div class="num big" id="recovery-ring-big-num">—<span class="unit">%</span></div>
             <div class="sub" id="recovery-state-big">No data yet</div>
           </div>
         </div>
-        <div id="recovery-coach" style="font-size:13px; color:var(--text-2); text-align:center; line-height:1.55; min-height:1.4em; max-width:340px; margin:6px auto 0 auto;"></div>
+        <div id="recovery-coach" class="ring-coach"></div>
       </div>
       <div class="card span-2">
         <span class="card-eyebrow">What drove recovery</span>
-        <div class="components" id="recovery-components" style="margin-top:14px;"></div>
+        <div class="components" id="recovery-components"></div>
       </div>
       <div class="card span-2">
         <span class="card-eyebrow" title="VO₂max estimated from resting HR (Uth–Sørensen). Fitness age and WHOOP age compare your physiology to population norms.">Fitness &amp; longevity</span>
-        <div style="display:flex; gap:22px; flex-wrap:wrap; margin-top:16px;">
-          <div>
-            <div class="big-num" style="font-size:34px;"><span id="rec-vo2max">—</span></div>
-            <div style="font-size:10px; color:var(--muted);">VO₂max · <span id="rec-vo2max-cat">—</span></div>
-          </div>
-          <div>
-            <div class="big-num" style="font-size:34px;"><span id="rec-fitness-age">—</span></div>
-            <div style="font-size:10px; color:var(--muted);">Fitness age</div>
-          </div>
-          <div>
-            <div class="big-num" style="font-size:34px;"><span id="rec-whoop-age">—</span></div>
-            <div style="font-size:10px; color:var(--muted);" id="rec-whoop-age-sub">WHOOP age</div>
-          </div>
+        <div class="stat-row">
+          <div class="stat"><div class="num"><span id="rec-vo2max">—</span></div><div class="lbl">VO₂max · <span id="rec-vo2max-cat">—</span></div></div>
+          <div class="stat"><div class="num"><span id="rec-fitness-age">—</span></div><div class="lbl">Fitness age</div></div>
+          <div class="stat"><div class="num"><span id="rec-whoop-age">—</span></div><div class="lbl" id="rec-whoop-age-sub">WHOOP age</div></div>
         </div>
       </div>
       <div class="card span-2">
@@ -464,8 +429,8 @@
       </div>
       <div class="card span-2">
         <span class="card-eyebrow" title="Average daytime stress — HRV suppression measured in rolling 5-minute windows. 0 = calm, 100 = highly stressed.">Stress · today</span>
-        <div style="display:flex; align-items:baseline; gap:12px; margin-top:10px;">
-          <div class="big-num" style="font-size:44px;"><span id="rec-stress">—</span><span class="unit" style="color:var(--text-muted);">/100</span></div>
+        <div class="stat-row" style="align-items:baseline; gap:12px;">
+          <div class="big-num" style="font-size:44px;"><span id="rec-stress">—</span><span class="unit">/100</span></div>
           <div id="rec-stress-label" style="font-size:12px; font-weight:600; letter-spacing:.04em;"></div>
         </div>
       </div>
@@ -484,7 +449,7 @@
       <div class="card span-2">
         <div class="card-eyebrow" title="RR[n] vs RR[n+1] — scatter shows cardiac coherence. Tight vertical (SD1) = good HRV. Wide horizontal (SD2) = strong long-term modulation.">Poincaré plot · last sleep</div>
         <div class="chart-wrap"><canvas id="poincare-plot"></canvas></div>
-        <div id="poincare-meta" style="font-size:10px; color:var(--muted); margin-top:4px; text-align:center;"></div>
+        <div id="poincare-meta" class="center fs-10 muted" style="margin-top:4px;"></div>
       </div>
       <div class="card span-2">
         <div class="card-eyebrow">Skin temp deviation · 30 days</div>
@@ -505,7 +470,7 @@
     <div class="grid">
       <div class="card span-4">
         <span class="card-eyebrow">Hypnogram · last night</span>
-        <div class="hypnogram-wrap" style="margin-top:14px;"><svg id="hypnogram" viewBox="0 0 1000 220"></svg></div>
+        <div class="hypnogram-wrap"><svg id="hypnogram" viewBox="0 0 1000 220"></svg></div>
         <div class="legend" id="hypnogram-legend"></div>
       </div>
 
@@ -520,9 +485,9 @@
       </div>
       <div class="card span-2" id="sleep-quality-card">
         <span class="card-eyebrow" title="Composite of performance, efficiency, restorative ratio, consistency, and debt">Quality score</span>
-        <div style="display:flex; align-items:center; gap:18px; margin-top:8px;">
+        <div class="quality-row">
           <div class="big-num" style="font-size:48px;"><span id="sleep-quality">—</span><span class="unit">/100</span></div>
-          <div id="sleep-quality-breakdown" style="flex:1; display:grid; grid-template-columns:1fr auto; gap:4px 14px; font-size:11px; color:var(--text-muted);"></div>
+          <div id="sleep-quality-breakdown"></div>
         </div>
       </div>
       <div class="card card-sleep">
@@ -579,39 +544,37 @@
       <span class="panel-date" id="strain-date"></span>
     </header>
     <div class="grid">
-      <div class="ring-card strain span-2" style="display:flex; flex-direction:column;">
+      <div class="ring-card strain col span-2">
         <div class="ring-eyebrow">Day strain</div>
-        <div class="ring-wrap" style="margin: 18px auto; width: 260px; height: 260px;">
+        <div class="ring-wrap strain-hero">
           <svg id="strain-hero-ring" viewBox="0 0 300 300"></svg>
           <div class="ring-value">
             <div class="num big" id="strain-big">—</div>
             <div class="sub" id="strain-label">—</div>
           </div>
         </div>
-        <div id="strain-target" style="font-size:13px; color:var(--text-2); text-align:center; line-height:1.55; margin-top:6px;"></div>
+        <div id="strain-target" class="ring-coach"></div>
       </div>
       <div class="card">
         <span class="card-eyebrow">Calories</span>
-        <div class="big-num" style="font-size:44px; margin-top:12px; color: var(--warn);"><span id="strain-cals">—</span><span class="unit" style="color:var(--text-muted);">kcal</span></div>
+        <div class="big-num" style="font-size:44px; margin-top:12px; color:var(--warn);"><span id="strain-cals">—</span><span class="unit">kcal</span></div>
       </div>
       <div class="card">
         <span class="card-eyebrow" title="Time-in-zone weighted 1–5, blended 70/30 with HR reserve. An interpretable companion to day strain.">Zone strain</span>
-        <div class="big-num" style="font-size:44px; margin-top:12px;"><span id="strain-zone">—</span><span class="unit" style="color:var(--text-muted);">/21</span></div>
+        <div class="big-num" style="font-size:44px; margin-top:12px;"><span id="strain-zone">—</span><span class="unit">/21</span></div>
       </div>
       <div class="card span-2" id="energy-bank-card">
         <span class="card-eyebrow" title="Calories split into a resting baseline and active burn (MET model). Budget left = today's recovery strain ceiling minus strain spent.">Energy bank</span>
-        <div style="display:flex; gap:24px; flex-wrap:wrap; margin-top:14px; align-items:flex-end;">
-          <div><div class="big-num" style="font-size:32px; color:var(--warn);"><span id="energy-active">—</span></div><div style="font-size:10px; color:var(--text-muted);">Active kcal</div></div>
-          <div><div class="big-num" style="font-size:32px;"><span id="energy-resting">—</span></div><div style="font-size:10px; color:var(--text-muted);">Resting kcal</div></div>
-          <div><div class="big-num" style="font-size:32px;"><span id="energy-remaining">—</span></div><div style="font-size:10px; color:var(--text-muted);">Strain budget left</div></div>
+        <div class="energy-row">
+          <div class="stat"><div class="num warn"><span id="energy-active">—</span></div><div class="lbl">Active kcal</div></div>
+          <div class="stat"><div class="num"><span id="energy-resting">—</span></div><div class="lbl">Resting kcal</div></div>
+          <div class="stat"><div class="num"><span id="energy-remaining">—</span></div><div class="lbl">Strain budget left</div></div>
         </div>
-        <div style="margin-top:14px; height:8px; border-radius:4px; background:var(--track); overflow:hidden;">
-          <div id="energy-bank-fill" style="height:100%; width:0%; background:var(--strain); border-radius:4px; transition:width .4s ease;"></div>
-        </div>
+        <div class="energy-track"><div id="energy-bank-fill" class="energy-fill"></div></div>
       </div>
       <div class="card span-4">
         <span class="card-eyebrow">Time in zones</span>
-        <div class="zones-row" id="zones-row" style="margin-top:14px;"></div>
+        <div class="zones-row" id="zones-row"></div>
       </div>
       <div class="card span-3">
         <div class="card-eyebrow">Strain curve · today</div>
@@ -623,11 +586,11 @@
       </div>
       <div class="card span-2" id="acwr-card">
         <div class="card-eyebrow" title="Acute (7d) / Chronic (21d) workload ratio. Sweet spot 0.8–1.3; >1.5 = injury risk; <0.6 = detraining.">Training load (ACWR)</div>
-        <div style="display:flex; align-items:baseline; gap:12px; margin-top:6px;">
+        <div class="acwr-row">
           <div class="big-num" style="font-size:36px;"><span id="acwr-ratio">—</span></div>
-          <div id="acwr-band" style="font-size:11px; font-weight:600; letter-spacing:.04em;">—</div>
+          <div id="acwr-band">—</div>
         </div>
-        <div id="acwr-detail" style="font-size:10px; color:var(--muted); margin-top:4px;"></div>
+        <div id="acwr-detail"></div>
       </div>
       <div class="card span-2">
         <div class="card-eyebrow">Strain · 30 days</div>
@@ -644,7 +607,7 @@
   <section class="tab-panel" data-panel="trends">
     <header class="panel-header">
       <div>
-        <h1>Trends & History</h1>
+        <h1>Trends &amp; History</h1>
         <div class="panel-subtitle">Long-term biometric progression and weekday rollups</div>
       </div>
       <div class="controls">
@@ -672,27 +635,23 @@
     </header>
     <div class="grid">
       <div class="card span-4" id="weekly-summary-card">
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <div class="card-head">
           <div class="card-eyebrow">7-day summary</div>
-          <button id="copy-weekly"
-            style="background:var(--card-bg2); color:var(--fg2); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:11px; cursor:pointer; font-weight:600; letter-spacing:.04em;"
-            title="Copy summary text to clipboard">
-            📋 Copy
-          </button>
+          <button id="copy-weekly" class="btn-soft" title="Copy summary text to clipboard">📋 Copy</button>
         </div>
-        <pre id="weekly-summary-text" style="font-family:inherit; font-size:11px; line-height:1.7; color:var(--muted); white-space:pre-wrap; margin:6px 0 0 0;">Loading…</pre>
+        <pre id="weekly-summary-text">Loading…</pre>
       </div>
       <div class="card span-4">
-        <div class="card-eyebrow" style="display:flex; justify-content:space-between; align-items:center;">
-          <span>Calendar · 30 days</span>
-          <select id="cal-metric" style="font-size:11px; background:var(--card-bg2); color:var(--fg); border:1px solid var(--border); border-radius:4px; padding:2px 4px;">
+        <div class="card-head">
+          <span class="card-eyebrow">Calendar · 30 days</span>
+          <select id="cal-metric" class="select-mini">
             <option value="recovery_score">Recovery</option>
             <option value="sleep_performance_pct">Sleep perf</option>
             <option value="strain_score">Strain</option>
             <option value="rmssd_ms">HRV</option>
           </select>
         </div>
-        <div id="recovery-cal" style="margin-top:6px;"></div>
+        <div id="recovery-cal"></div>
       </div>
       <div class="card span-4">
         <div class="card-eyebrow" id="trend-title">Recovery · 30 days</div>
@@ -704,16 +663,12 @@
       </div>
       <div class="card span-4">
         <div class="card-eyebrow">Personal records · all time</div>
-        <div id="personal-records" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin-top:8px;"></div>
+        <div id="personal-records"></div>
       </div>
       <div class="card span-4">
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <div class="card-head">
           <div class="card-eyebrow">All daily metrics</div>
-          <button id="export-csv"
-            style="background:var(--card-bg2); color:var(--fg2); border:1px solid var(--border); padding:5px 12px; border-radius:6px; font-size:11px; cursor:pointer; font-weight:600; letter-spacing:.04em;"
-            title="Download all daily_metrics rows as a CSV file">
-            ⬇ Export CSV
-          </button>
+          <button id="export-csv" class="btn-soft" title="Download all daily_metrics rows as a CSV file">⬇ Export CSV</button>
         </div>
         <div class="table-wrap"><table id="trends-table"></table></div>
       </div>
@@ -770,15 +725,14 @@
       </div>
     </header>
     <div class="grid">
-      <div class="card span-4" style="display:flex; flex-direction:column; min-height:62vh;">
-        <div id="coach-log" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding:6px 2px;"></div>
-        <form id="coach-form" style="display:flex; gap:8px; margin-top:12px;">
-          <input id="coach-input" type="text" autocomplete="off" enterkeyhint="send"
-            placeholder="e.g. Why is my recovery low today?"
-            style="flex:1; padding:12px 14px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); color:var(--text); font-size:14px;" />
+      <div class="card span-4 coach-card">
+        <div id="coach-log" class="coach-log"></div>
+        <form id="coach-form" class="coach-form">
+          <input id="coach-input" class="coach-input" type="text" autocomplete="off" enterkeyhint="send"
+            placeholder="e.g. Why is my recovery low today?" />
           <button class="primary" type="submit" id="coach-send">Send</button>
         </form>
-        <div class="hint" style="margin-top:8px;">Runs on Cloudflare Workers AI. Educational only — not medical advice.</div>
+        <div class="hint">Runs on Cloudflare Workers AI. Educational only — not medical advice.</div>
       </div>
     </div>
   </section>
@@ -845,14 +799,9 @@
   </button>
 </nav>
 
-
-
 <script src="/vendor/chart.umd.min.js"></script>
-<!-- Capacitor runtime — only loaded when running inside the native iOS shell.
-     Capacitor injects this automatically via its WebView, but referencing it
-     here is harmless on the web (404 silently). -->
+<!-- Capacitor runtime — only loaded when running inside the native iOS shell. -->
 <script type="module">
-  // Install the BLE bridge if we're running inside Capacitor.
   if (window.Capacitor?.isNativePlatform?.()) {
     import('/js/ble/capacitor-bridge.js').catch((e) => console.warn('[boot] BLE bridge', e));
   }
@@ -865,7 +814,6 @@
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js').catch((err) => {
-        // Non-fatal: SW registration may fail in dev (file:// origins, etc.)
         console.warn('[sw] registration failed', err);
       });
     });
