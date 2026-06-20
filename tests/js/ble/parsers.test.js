@@ -3,10 +3,50 @@ import {
   WhoopPacket, PacketType, EventNumber, MetadataType,
 } from '../../../web/js/ble/packet.js';
 import {
-  parseRealtime, parseHistorical, parseMetadata, parseEvent,
+  parseRealtime, parseHistorical, parseHistoricalV5, parseMetadata, parseEvent,
   parseBatteryResponse, parseClockResponse, parseHelloResponse,
   parseConsoleLog, decodePacket,
 } from '../../../web/js/ble/parsers.js';
+
+// data index = payload offset − 3 (pkt.data = payload.slice(3))
+function v5Body({ unix = 1700000000, subsec = 0, counter = 42, hr, hrIndex, len = 32 }) {
+  const d = new Uint8Array(len);
+  const dv = new DataView(d.buffer);
+  dv.setUint32(0, counter, true);   // counter @ data[0]
+  dv.setUint32(4, unix, true);      // unix    @ data[4]
+  dv.setUint16(8, subsec, true);    // subsec  @ data[8]
+  if (hr != null && hrIndex != null) d[hrIndex] = hr;
+  return d;
+}
+
+describe('parseHistoricalV5 (per-K HR offsets)', () => {
+  it('K18 reads HR at data[11]', () => {
+    const out = parseHistoricalV5(18, v5Body({ hr: 58, hrIndex: 11 }));
+    expect(out.heartRateBpm).toBe(58);
+    expect(out.kRevision).toBe(18);
+    expect(out.source).toBe('v5');
+  });
+  it('K9/K12/K24 read HR at data[14]', () => {
+    expect(parseHistoricalV5(9,  v5Body({ hr: 61, hrIndex: 14 })).heartRateBpm).toBe(61);
+    expect(parseHistoricalV5(12, v5Body({ hr: 62, hrIndex: 14 })).heartRateBpm).toBe(62);
+    expect(parseHistoricalV5(24, v5Body({ hr: 63, hrIndex: 14 })).heartRateBpm).toBe(63);
+  });
+  it('K7 reads HR at data[24]', () => {
+    expect(parseHistoricalV5(7, v5Body({ hr: 70, hrIndex: 24, len: 40 })).heartRateBpm).toBe(70);
+  });
+  it('returns null for unknown K-revision', () => {
+    expect(parseHistoricalV5(17, v5Body({ hr: 60, hrIndex: 11 }))).toBeNull();
+  });
+  it('rejects implausible unix timestamps', () => {
+    expect(parseHistoricalV5(18, v5Body({ unix: 0, hr: 60, hrIndex: 11 }))).toBeNull();
+  });
+  it('carries unix + flashIndex through', () => {
+    const out = parseHistoricalV5(18, v5Body({ unix: 1700000000, counter: 99, hr: 55, hrIndex: 11 }));
+    expect(out.unix).toBe(1700000000);
+    expect(out.flashIndex).toBe(99);
+    expect(out.isoUtc).toBe(new Date(1700000000 * 1000).toISOString());
+  });
+});
 
 function pad(arr, size) {
   const out = new Uint8Array(size);

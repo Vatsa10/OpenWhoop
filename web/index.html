@@ -54,12 +54,20 @@
   .container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
   section { padding: 96px 0; }
 
-  /* ── Nav ── */
+  /* ── Nav ── floating pill at top, expands to full-width bar on scroll */
   nav { position: fixed; inset: 0 0 auto 0; z-index: 100;
-    background: rgba(255,255,255,.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--line); }
-  .nav-inner { max-width: 1120px; margin: 0 auto; padding: 0 24px; height: 60px;
-    display: flex; align-items: center; justify-content: space-between; }
+    display: flex; justify-content: center;
+    background: transparent; border-bottom: 1px solid transparent;
+    transition: background .5s cubic-bezier(.32,.72,0,1), border-color .5s cubic-bezier(.32,.72,0,1); }
+  .nav-inner { width: min(680px, calc(100% - 32px)); margin: 14px 0 0; padding: 0 12px 0 16px; height: 54px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-radius: 999px; background: rgba(255,255,255,.72);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--line); box-shadow: 0 8px 30px rgba(0,0,0,.06);
+    transition: width .5s cubic-bezier(.32,.72,0,1), margin .5s cubic-bezier(.32,.72,0,1),
+      border-radius .5s cubic-bezier(.32,.72,0,1), background .5s, box-shadow .5s, padding .5s cubic-bezier(.32,.72,0,1); }
+  nav.scrolled .nav-inner { width: min(1120px, calc(100% - 32px)); margin: 14px 0 0; padding: 0 14px 0 22px;
+    height: 60px; box-shadow: 0 12px 40px rgba(0,0,0,.10); }
   .nav-logo { font-size: 17px; font-weight: 700; letter-spacing: -.02em; text-decoration: none;
     display: flex; align-items: center; gap: 9px; }
   .nav-logo .mark { width: 30px; height: 30px; border-radius: 8px; display: block; }
@@ -514,6 +522,16 @@
       entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
     }, { rootMargin: '0px 0px -10% 0px', threshold: .08 });
     els.forEach(function (e) { io.observe(e); });
+  })();
+  // Nav: floating pill at top → full-width bar once scrolled
+  (function () {
+    var nav = document.querySelector('nav');
+    var t = document.createElement('div'); t.style.cssText = 'position:absolute;top:24px';
+    document.body.prepend(t);
+    var io = new IntersectionObserver(function (e) {
+      nav.classList.toggle('scrolled', !e[0].isIntersecting);
+    });
+    io.observe(t);
   })();
 </script>
 </body>

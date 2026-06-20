@@ -79,6 +79,45 @@ export function parseHistorical(data) {
   };
 }
 
+// --- HISTORICAL_DATA, WHOOP 5.0 (per-K-revision HR) ------------------------
+//
+// 5.0 ("Puffin") history packets share the 4.0 body header (unix@4, subsec@8,
+// counter@0) but place the heart-rate marker at a K-revision-specific offset.
+// Offsets are protocol facts (clean-room): in the full payload K18→14,
+// K9/12/24→17, K7→27; since pkt.data = payload.slice(3), subtract 3 to index
+// into the body.
+//
+//   payload offset → data index
+//     K18                14 → 11
+//     K9 / K12 / K24     17 → 14
+//     K7                 27 → 24
+//
+// Only heart rate is decoded — skin-temp / respiratory offsets remain
+// UNVERIFIED (see docs/whoop5-candidate-capture.md), so they are NOT produced.
+const V5_HR_DATA_OFFSET = { 7: 24, 9: 14, 12: 14, 18: 11, 24: 14 };
+
+export function parseHistoricalV5(kRevision, data) {
+  const hrOff = V5_HR_DATA_OFFSET[kRevision];
+  if (hrOff == null) return null;            // not a normal-history K-revision
+  if (data.length <= hrOff || data.length < 14) return null;
+  const unix = u32le(data, 4);
+  const subsec = u16le(data, 8);
+  const flashIndex = u32le(data, 0);
+  const heart = data[hrOff];
+  if (!(unix >= 946684800 && unix < 4102444800)) return null; // 2000..2100 plausibility
+  return {
+    type: 'historical',
+    unix,
+    subsec,
+    flashIndex,
+    isoUtc: new Date(unix * 1000).toISOString(),
+    heartRateBpm: (heart >= 20 && heart <= 250) ? heart : null,
+    rrIntervalsMs: [],
+    kRevision,
+    source: 'v5',
+  };
+}
+
 // --- METADATA (type 49) ----------------------------------------------------
 //
 // cmd byte = MetadataType (HISTORY_START/END/COMPLETE).

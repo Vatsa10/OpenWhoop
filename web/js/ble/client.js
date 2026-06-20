@@ -20,7 +20,7 @@ import {
 } from './packet.js';
 import {
   decodePacket, parseBatteryResponse, parseClockResponse,
-  parseHelloResponse, parseHistorical,
+  parseHelloResponse, parseHistorical, parseHistoricalV5,
 } from './parsers.js';
 import { createEmitter } from '../util/events.js';
 
@@ -365,18 +365,19 @@ export class WhoopClient {
       }
       case PacketType.HISTORICAL_DATA: {
         if (this._family === 'whoop5') {
-          // 5.0 historical bodies use a K-revision-specific layout that is NOT
-          // the 4.0 one — running parseHistorical here would fabricate a heart
-          // rate from the wrong offset. Instead emit the raw frame plus its
-          // k-revision (payload[1] = raw notification byte[9], goose's
-          // discriminator; k=18/24 carry the skin-temp/resp candidates) so the
-          // app can capture it for offline offset discovery. No value decode is
-          // performed. See docs/whoop5-candidate-capture.md.
+          // 5.0 historical bodies use a K-revision-specific layout. Decode HEART
+          // RATE only, from the documented per-K marker offset (clean-room: K18,
+          // K9/12/24, K7). Skin-temp/respiratory offsets stay UNVERIFIED, so we
+          // also emit the raw frame + k-revision (payload[1] = goose's
+          // discriminator) for offline offset discovery. See
+          // docs/whoop5-candidate-capture.md.
           this._emit('rawCandidate', {
             kRevision: pkt.seq,
             cmd: pkt.cmd,
             data: Uint8Array.from(pkt.data),
           });
+          const recV5 = parseHistoricalV5(pkt.seq, pkt.data);
+          if (recV5 && recV5.heartRateBpm != null) this._emit('historicalSample', recV5);
           break;
         }
         try {
