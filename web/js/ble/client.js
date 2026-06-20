@@ -465,12 +465,27 @@ export class WhoopClient {
 
   // ----- command senders --------------------------------------------------
 
-  async _sendCommand(cmd, payload = new Uint8Array()) {
+  // goose partitions 5.0 command sequence numbers by channel: sensor-stream
+  // commands count from 180, historical (22/23/34) from 57; everything else
+  // uses the global counter. 4.0 always uses the single global counter.
+  _nextSeq(space) {
+    if (this._family !== 'whoop5' || !space) {
+      const s = this._seq; this._seq = (this._seq + 1) & 0xff; return s;
+    }
+    const base = space === 'sensor' ? 180 : space === 'historical' ? 57 : 0;
+    const key = '_seq_' + space;
+    if (this[key] == null) this[key] = base;
+    const s = this[key];
+    this[key] = (s + 1) > 255 ? base : (s + 1);
+    return s;
+  }
+
+  async _sendCommand(cmd, payload = new Uint8Array(), { space } = {}) {
     if (!this.charCmd) throw new Error('Not connected');
+    const seq = this._nextSeq(space);
     const frame = this._family === 'whoop5'
-      ? buildV5CommandFrame(this._seq, cmd, payload)
-      : buildCommandFrame(cmd, payload, this._seq);
-    this._seq = (this._seq + 1) & 0xff;
+      ? buildV5CommandFrame(seq, cmd, payload)
+      : buildCommandFrame(cmd, payload, seq);
     await this.charCmd.writeValue(frame);
   }
 
@@ -484,34 +499,40 @@ export class WhoopClient {
     await this._sendCommand(CommandNumber.TOGGLE_REALTIME_HR, new Uint8Array([0x00]));
   }
 
-  // 5.0 realtime needs more than the single TOGGLE_REALTIME_HR: the strap only
-  // streams optical (R10/R11) + IMU once a sequence of stream toggles is sent,
-  // spaced out so the strap can act on each. Each command is a "revision
-  // boolean" payload [0x01, enabled]. Stop reverses the order with enabled=0.
+  // 5.0 realtime needs a precise sequence of stream toggles, spaced ~250ms so
+  // the strap can act on each. Exact bytes from goose (battle-tested on 5.0):
+  // cmds 3 (TOGGLE_REALTIME_HR) and 63 (SEND_R10_R11_REALTIME) take a SINGLE
+  // byte [0x01]; the other five take the "revision boolean" [0x01, enabled].
+  // Stop reverses the order: 3 & 63 → [0x00]; the rest → [0x01, 0x00].
   async startPhysiologyCapture() {
-    const seq = [
-      CommandNumber.TOGGLE_REALTIME_HR, CommandNumber.SEND_R10_R11_REALTIME,
-      CommandNumber.TOGGLE_IMU_MODE, CommandNumber.TOGGLE_PERSISTENT_R21,
-      CommandNumber.ENABLE_OPTICAL_DATA, CommandNumber.TOGGLE_OPTICAL_MODE,
-      CommandNumber.TOGGLE_PERSISTENT_R20,
-    ];
-    await this._runSpacedCommands(seq, 0x01);
+    await this._runPhysiologyCommands([
+      [CommandNumber.TOGGLE_REALTIME_HR,    [0x01]],
+      [CommandNumber.SEND_R10_R11_REALTIME, [0x01]],
+      [CommandNumber.TOGGLE_IMU_MODE,       [0x01, 0x01]],
+      [CommandNumber.TOGGLE_PERSISTENT_R21, [0x01, 0x01]],
+      [CommandNumber.ENABLE_OPTICAL_DATA,   [0x01, 0x01]],
+      [CommandNumber.TOGGLE_OPTICAL_MODE,   [0x01, 0x01]],
+      [CommandNumber.TOGGLE_PERSISTENT_R20, [0x01, 0x01]],
+    ]);
   }
 
   async stopPhysiologyCapture() {
-    const seq = [
-      CommandNumber.TOGGLE_PERSISTENT_R20, CommandNumber.TOGGLE_OPTICAL_MODE,
-      CommandNumber.ENABLE_OPTICAL_DATA, CommandNumber.TOGGLE_PERSISTENT_R21,
-      CommandNumber.TOGGLE_IMU_MODE, CommandNumber.SEND_R10_R11_REALTIME,
-      CommandNumber.TOGGLE_REALTIME_HR,
-    ];
-    await this._runSpacedCommands(seq, 0x00);
+    await this._runPhysiologyCommands([
+      [CommandNumber.TOGGLE_PERSISTENT_R20, [0x01, 0x00]],
+      [CommandNumber.TOGGLE_OPTICAL_MODE,   [0x01, 0x00]],
+      [CommandNumber.ENABLE_OPTICAL_DATA,   [0x01, 0x00]],
+      [CommandNumber.TOGGLE_PERSISTENT_R21, [0x01, 0x00]],
+      [CommandNumber.TOGGLE_IMU_MODE,       [0x01, 0x00]],
+      [CommandNumber.SEND_R10_R11_REALTIME, [0x00]],
+      [CommandNumber.TOGGLE_REALTIME_HR,    [0x00]],
+    ]);
   }
 
-  async _runSpacedCommands(cmds, enabled) {
-    for (let i = 0; i < cmds.length; i++) {
-      await this._sendCommand(cmds[i], new Uint8Array([0x01, enabled & 0x01]));
-      if (i < cmds.length - 1 && this._physiologyGapMs > 0) await delay(this._physiologyGapMs);
+  async _runPhysiologyCommands(pairs) {
+    for (let i = 0; i < pairs.length; i++) {
+      const [cmd, payload] = pairs[i];
+      await this._sendCommand(cmd, new Uint8Array(payload), { space: 'sensor' });
+      if (i < pairs.length - 1 && this._physiologyGapMs > 0) await delay(this._physiologyGapMs);
     }
   }
 
@@ -555,7 +576,7 @@ export class WhoopClient {
   }
 
   async getDataRange() {
-    await this._sendCommand(CommandNumber.GET_DATA_RANGE, new Uint8Array([0x00]));
+    await this._sendCommand(CommandNumber.GET_DATA_RANGE, new Uint8Array([0x00]), { space: 'historical' });
   }
 
   async runHaptics(pattern = 0) {
@@ -707,7 +728,7 @@ export class WhoopClient {
       try { await this.abortHistoricalTransmits(); } catch {}
       try { await this.enterHighFreqSync(); highFreq = true; } catch {}
 
-      await this._sendCommand(CommandNumber.SEND_HISTORICAL_DATA, new Uint8Array([0x00]));
+      await this._sendCommand(CommandNumber.SEND_HISTORICAL_DATA, new Uint8Array([0x00]), { space: 'historical' });
 
       while (true) {
         // Wait for an END or COMPLETE — skip START frames.
@@ -721,15 +742,21 @@ export class WhoopClient {
           return { samples: samplesReceived };
         }
 
-        // Ack the batch by echoing trim. Payload = [0x01][trim u32 LE][0 u32].
+        // Ack the batch. 5.0 echoes the 8-byte token from HISTORY_END
+        // (payload[13..21]); 4.0 echoes the u32 trim then zero-pads. Both are
+        // 9 bytes: [0x01] + 8.
         const ack = new Uint8Array(9);
         ack[0] = 0x01;
-        ack[1] = meta.trim & 0xff;
-        ack[2] = (meta.trim >>> 8) & 0xff;
-        ack[3] = (meta.trim >>> 16) & 0xff;
-        ack[4] = (meta.trim >>> 24) & 0xff;
-        // bytes 5..9 stay zero
-        await this._sendCommand(CommandNumber.HISTORICAL_DATA_RESULT, ack);
+        if (this._family === 'whoop5' && meta.ackToken && meta.ackToken.length === 8) {
+          ack.set(meta.ackToken, 1);
+        } else {
+          ack[1] = meta.trim & 0xff;
+          ack[2] = (meta.trim >>> 8) & 0xff;
+          ack[3] = (meta.trim >>> 16) & 0xff;
+          ack[4] = (meta.trim >>> 24) & 0xff;
+          // bytes 5..9 stay zero
+        }
+        await this._sendCommand(CommandNumber.HISTORICAL_DATA_RESULT, ack, { space: 'historical' });
         this._emit('historyProgress', { samples: samplesReceived, trim: meta.trim });
       }
     } catch (err) {

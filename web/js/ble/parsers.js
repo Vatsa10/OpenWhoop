@@ -105,7 +105,7 @@ export function parseHistoricalV5(kRevision, data) {
   const flashIndex = u32le(data, 0);
   const heart = data[hrOff];
   if (!(unix >= 946684800 && unix < 4102444800)) return null; // 2000..2100 plausibility
-  return {
+  const out = {
     type: 'historical',
     unix,
     subsec,
@@ -116,7 +116,26 @@ export function parseHistoricalV5(kRevision, data) {
     kRevision,
     source: 'v5',
   };
+
+  // CANDIDATE skin-temp / respiratory decode (goose offsets, body = data[10:]).
+  // UNVERIFIED — goose never promotes these to stored vitals. We surface them
+  // flagged so the UI can show "candidate" without overwriting real recovery.
+  //   K18 temp  body[24]→data[34] i16 LE / 100   °C
+  //   K18 resp  body[26]→data[36] u16 LE / 10    rpm
+  //   K24 temp  body[3] →data[13] u16 LE / 1000  °C
+  const cand = {};
+  if (kRevision === 18) {
+    if (data.length >= 36) { const t = i16le(data, 34) / 100; if (t >= 20 && t <= 45) cand.skinTempC = round2(t); }
+    if (data.length >= 38) { const r = u16le(data, 36) / 10;  if (r >= 6 && r <= 30) cand.respRateRpm = round1(r); }
+  } else if (kRevision === 24) {
+    if (data.length >= 15) { const t = u16le(data, 13) / 1000; if (t >= 20 && t <= 45) cand.skinTempC = round2(t); }
+  }
+  if (Object.keys(cand).length) { cand.unverified = true; out.candidate = cand; }
+  return out;
 }
+
+function round1(n) { return Math.round(n * 10) / 10; }
+function round2(n) { return Math.round(n * 100) / 100; }
 
 // --- METADATA (type 49) ----------------------------------------------------
 //
@@ -141,6 +160,9 @@ export function parseMetadata(cmd, data) {
     out.subsec = u16le(data, 4);
     out.unk = u32le(data, 6);
     out.trim = u32le(data, 10);
+    // 5.0 ACK echoes 8 token bytes = payload[13..21] = data[10..18]. goose
+    // builds HISTORICAL_DATA_RESULT as [0x01] + these 8 bytes.
+    if (data.length >= 18) out.ackToken = data.slice(10, 18);
   } else if (kind === 'historyStart' && data.length >= 10) {
     out.unix = u32le(data, 0);
     out.subsec = u16le(data, 4);

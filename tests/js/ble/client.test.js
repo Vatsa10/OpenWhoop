@@ -365,8 +365,12 @@ describe('WhoopClient mocked BLE', () => {
         CommandNumber.ENABLE_OPTICAL_DATA, CommandNumber.TOGGLE_OPTICAL_MODE,
         CommandNumber.TOGGLE_PERSISTENT_R20,
       ]);
-      // each is a revision-boolean ON payload [0x01, 0x01]
-      expect(Array.from(pkts[0].data.slice(0, 2))).toEqual([0x01, 0x01]);
+      // goose bytes: cmds 3 & 63 take a single [0x01]; the rest take the
+      // revision-boolean [0x01, 0x01]. (V5 payloads pad to a multiple of 4, so
+      // compare the meaningful leading bytes.)
+      expect(Array.from(pkts[0].data.slice(0, 1))).toEqual([0x01]);       // TOGGLE_REALTIME_HR
+      expect(Array.from(pkts[1].data.slice(0, 1))).toEqual([0x01]);       // SEND_R10_R11_REALTIME
+      expect(Array.from(pkts[2].data.slice(0, 2))).toEqual([0x01, 0x01]); // TOGGLE_IMU_MODE
     });
 
     it('setClock emits an 8-byte subseconds payload on 5.0', async () => {

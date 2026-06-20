@@ -46,6 +46,39 @@ describe('parseHistoricalV5 (per-K HR offsets)', () => {
     expect(out.flashIndex).toBe(99);
     expect(out.isoUtc).toBe(new Date(1700000000 * 1000).toISOString());
   });
+
+  it('K18 decodes candidate skin temp (data[34], i16/100) + resp (data[36], u16/10), flagged unverified', () => {
+    const d = v5Body({ hr: 60, hrIndex: 11, len: 40 });
+    const dv = new DataView(d.buffer);
+    dv.setInt16(34, 3650, true);  // 36.50 °C
+    dv.setUint16(36, 145, true);  // 14.5 rpm
+    const out = parseHistoricalV5(18, d);
+    expect(out.candidate).toEqual({ skinTempC: 36.5, respRateRpm: 14.5, unverified: true });
+  });
+
+  it('K24 decodes candidate skin temp (data[13], u16/1000)', () => {
+    const d = v5Body({ hr: 60, hrIndex: 14, len: 20 });
+    new DataView(d.buffer).setUint16(13, 33500, true); // 33.5 °C
+    const out = parseHistoricalV5(24, d);
+    expect(out.candidate.skinTempC).toBe(33.5);
+    expect(out.candidate.unverified).toBe(true);
+  });
+
+  it('drops out-of-band candidate temp (not 20..45 °C)', () => {
+    const d = v5Body({ hr: 60, hrIndex: 11, len: 40 });
+    new DataView(d.buffer).setInt16(34, 9000, true); // 90 °C → rejected
+    const out = parseHistoricalV5(18, d);
+    expect(out.candidate).toBeUndefined();
+  });
+});
+
+describe('parseMetadata historyEnd ackToken', () => {
+  it('exposes 8-byte ackToken at data[10..18] for V5 ACK', () => {
+    const d = new Uint8Array(20);
+    for (let i = 0; i < 8; i++) d[10 + i] = i + 1;
+    const out = parseMetadata(MetadataType.HISTORY_END, d);
+    expect(Array.from(out.ackToken)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+  });
 });
 
 function pad(arr, size) {
