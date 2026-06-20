@@ -25,7 +25,15 @@ function syncIdFrom(request) {
 
 const keyFor = (syncId) => `sync/${syncId}/snapshot`;
 
+// Cross-device sync needs an R2 bucket (env.SYNC). On deployments without R2
+// (e.g. no paid plan), the binding is absent — return 503 so the client
+// disables sync gracefully instead of throwing.
+const noBucket = (env) => !env || !env.SYNC
+  ? new Response('sync_unavailable', { status: 503 })
+  : null;
+
 export async function onRequestGet({ request, env }) {
+  const down = noBucket(env); if (down) return down;
   const syncId = syncIdFrom(request);
   if (!syncId) return new Response('unauthorized', { status: 401 });
 
@@ -40,6 +48,7 @@ export async function onRequestGet({ request, env }) {
 }
 
 export async function onRequestPut({ request, env }) {
+  const down = noBucket(env); if (down) return down;
   const syncId = syncIdFrom(request);
   if (!syncId) return new Response('unauthorized', { status: 401 });
 
@@ -69,6 +78,7 @@ export async function onRequestPut({ request, env }) {
 }
 
 export async function onRequestDelete({ request, env }) {
+  const down = noBucket(env); if (down) return down;
   const syncId = syncIdFrom(request);
   if (!syncId) return new Response('unauthorized', { status: 401 });
   await env.SYNC.delete(keyFor(syncId));

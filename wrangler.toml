@@ -16,11 +16,14 @@ name = "openwhoop"
 compatibility_date = "2026-05-21"
 pages_build_output_dir = "./web"
 
-# R2 bucket holding E2E-encrypted sync snapshots (ciphertext only).
-# Bound as env.SYNC in functions/api/sync.js.
-[[r2_buckets]]
-binding = "SYNC"
-bucket_name = "openwhoop-sync"
+# R2 bucket for E2E-encrypted cross-device sync (ciphertext only), bound as
+# env.SYNC in functions/api/sync.js. Disabled: R2 needs a paid plan. The sync
+# function returns 503 without it and the client disables sync gracefully.
+# To enable later: create the bucket (`wrangler r2 bucket create openwhoop-sync`)
+# and uncomment:
+# [[r2_buckets]]
+# binding = "SYNC"
+# bucket_name = "openwhoop-sync"
 
 # Workers AI — free-tier inference backing the AI Coach (functions/api/coach.js).
 # No API key; usage draws on the account's daily Workers AI allocation.
