@@ -18,6 +18,11 @@ vendor/
 !web/vendor/**
 .claude/
 
+# Reference clones — kept locally for protocol study only, never committed.
+# (goose has NO license = all rights reserved; do not redistribute.)
+/goose/
+/edge/
+
 # Cloudflare Wrangler local cache
 .wrangler/
 
