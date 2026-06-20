@@ -12,7 +12,8 @@
 //
 // Auto-reconnects with exponential backoff on `gattserverdisconnected`.
 
-import { FAMILIES } from './uuids.js';
+import { FAMILIES, STD_SERVICE, STD_CHAR } from './uuids.js';
+import { parseHeartRateMeasurement } from './standard-hr.js';
 import {
   WhoopPacket, PacketType, CommandNumber, EventNumber, MetadataType,
   EVENT_TYPES, METADATA_TYPES, buildCommandFrame, buildV5CommandFrame, decodeV5,
@@ -126,7 +127,10 @@ export class WhoopClient {
         { services: [FAMILIES.whoop4.service] },
         { namePrefix: 'WHOOP' },
       ],
-      optionalServices: [FAMILIES.whoop5.service, FAMILIES.whoop4.service],
+      optionalServices: [
+        FAMILIES.whoop5.service, FAMILIES.whoop4.service,
+        STD_SERVICE.HEART_RATE, STD_SERVICE.BATTERY,
+      ],
     });
     this._attachDisconnectHandler();
     await this._connect();
@@ -238,6 +242,13 @@ export class WhoopClient {
       try { await this.sendDebugSkinTempCommand(); } catch (e) { this._emit('error', e); }
     }
 
+    // 3c. Subscribe to the STANDARD BLE Heart Rate service (0x180D/0x2A37) for
+    //     live HR + RR. On WHOOP 5.0 this is the reliable live data path (the
+    //     proprietary 5.0 sensor packets aren't decoded yet); on 4.0 it only
+    //     exists if the Generic HR Profile is enabled. Best-effort: absence of
+    //     the service must never abort the connection.
+    try { await this._subscribeStandardHr(); } catch (e) { this._emit('error', e); }
+
     // 4. Start realtime
     try {
       await this.startRealtime();
@@ -245,6 +256,35 @@ export class WhoopClient {
 
     // 5. Initial battery sample
     this.getBatteryLevel().catch(() => {});
+  }
+
+  // Subscribe to the standard SIG Heart Rate Measurement characteristic. Emits
+  // 'sample' events in the same shape as the proprietary realtime decoder, so
+  // downstream storage/metrics treat 5.0 HR+RR exactly like 4.0's.
+  async _subscribeStandardHr() {
+    if (this._stdHrChar) return; // already subscribed
+    let svc;
+    try {
+      svc = await this.server.getPrimaryService(STD_SERVICE.HEART_RATE);
+    } catch (err) {
+      if (err && err.name === 'NotFoundError') return; // no standard HR service
+      throw err;
+    }
+    const ch = await svc.getCharacteristic(STD_CHAR.HEART_RATE_MEASUREMENT);
+    ch.addEventListener('characteristicvaluechanged', (e) => {
+      const m = parseHeartRateMeasurement(e.target.value);
+      if (m.heartRateBpm == null && m.rrIntervalsMs.length === 0) return;
+      this._emit('sample', {
+        type: 'realtime',
+        receivedAt: Date.now(),
+        heartRateBpm: m.heartRateBpm,
+        rrIntervalsMs: m.rrIntervalsMs,
+        source: 'standard-hr',
+      });
+    });
+    await ch.startNotifications();
+    this._stdHrChar = ch;
+    this._emit('standardHr', { active: true });
   }
 
   async disconnect() {
@@ -256,11 +296,13 @@ export class WhoopClient {
     try { await this.stopRealtime(); } catch {}
     if (this.server && this.server.connected) this.server.disconnect();
     this.connected = false;
+    this._stdHrChar = null;
     this._setState('disconnected');
   }
 
   _onDisconnected() {
     this.connected = false;
+    this._stdHrChar = null;
     if (this._batteryPollInterval) {
       clearInterval(this._batteryPollInterval);
       this._batteryPollInterval = null;

@@ -37,6 +37,12 @@ export const STD_SERVICE = Object.freeze({
   DEVICE_INFO: '0000180a-0000-1000-8000-00805f9b34fb',
 });
 
+// Standard SIG characteristics used inside STD_SERVICE.
+export const STD_CHAR = Object.freeze({
+  HEART_RATE_MEASUREMENT: '00002a37-0000-1000-8000-00805f9b34fb', // notify: HR + RR
+  BATTERY_LEVEL:          '00002a19-0000-1000-8000-00805f9b34fb',
+});
+
 // Backward-compat exports — existing callers (4.0) keep working unchanged.
 export const SERVICE_UUID       = FAMILIES.whoop4.service;
 export const CHAR_COMMAND_UUID  = FAMILIES.whoop4.command;
