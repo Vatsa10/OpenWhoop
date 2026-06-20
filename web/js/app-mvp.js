@@ -32,6 +32,7 @@ import { recentDailyMetrics, samplesInRange, upsertJournalEntry, recentJournalEn
 import {
   notificationsEnabled, requestNotifications, disableNotifications,
   notifyBackfillComplete, notifyLowRecovery, notifyLowBattery, notifyHrAnomaly,
+  notifyMorningBriefing,
 } from './util/notify.js';
 import { analyseTagCorrelations, tagInsights } from './metrics/correlate.js';
 
@@ -804,17 +805,113 @@ async function renderDailyPlan() {
       targetEl.textContent = `Target strain: ${lo}–${hi}  ·  HR zones 1–${plan.hrZoneCap}`;
     }
 
-    // Fire low-recovery notification once per day (tagged so it deduplicates).
-    if (plan.zone === 'rest' && today.recovery_score != null) {
-      notifyLowRecovery(today.recovery_score);
-    }
+    // Daily-habit hook: one notification per day, only in the morning window,
+    // only once we have a real recovery number. Low recovery gets the rest-day
+    // wording; otherwise the upbeat morning briefing. Gated via localStorage so
+    // the 2-minute render interval can't spam.
+    maybeNotifyMorning(plan, hasRec ? today.recovery_score : null);
   } catch (err) {
     console.warn('[plan] render failed', err);
   }
 }
 
+// localStorage key holds the last date (local) we sent a morning notification.
+const MORNING_KEY = 'openwhoop-morning-notified';
+
+function maybeNotifyMorning(plan, recoveryScore) {
+  if (!notificationsEnabled()) return;
+  const now = new Date();
+  const hour = now.getHours();
+  if (hour < 5 || hour >= 12) return;            // morning window only
+  const todayKey = now.toLocaleDateString('en-CA'); // YYYY-MM-DD, local
+  if (localStorage.getItem(MORNING_KEY) === todayKey) return;
+  if (recoveryScore == null) return;             // wait until metrics exist
+  localStorage.setItem(MORNING_KEY, todayKey);
+  if (plan.zone === 'rest') {
+    notifyLowRecovery(recoveryScore);
+  } else {
+    notifyMorningBriefing({
+      recoveryScore,
+      planLabel: plan.label,
+      strainRange: plan.strainRange,
+    });
+  }
+}
+
 window.addEventListener('whoop-data-changed', () => renderDailyPlan());
 setInterval(renderDailyPlan, 120_000);
+
+// ----- Consistency card: wear streak + weekly goal ------------------------
+// Daily-habit reinforcement. "Worn" = a day with sensor samples recorded.
+
+const dayKey = (d) => d.toLocaleDateString('en-CA'); // YYYY-MM-DD local
+
+async function renderHabits() {
+  const streakEl = document.getElementById('habit-streak');
+  if (!streakEl) return;
+  try {
+    if (!db) db = await openDb();
+    const rows = await recentDailyMetrics(db, 90); // newest first
+    const worn = new Set(
+      rows.filter((r) => (r.sample_count ?? 0) > 0).map((r) => r.date),
+    );
+
+    // Wear streak: consecutive days ending today (or yesterday, so an
+    // un-synced morning doesn't reset a real streak) going backwards.
+    const today = new Date();
+    let cursor = new Date(today);
+    if (!worn.has(dayKey(cursor))) cursor.setDate(cursor.getDate() - 1); // grace
+    let streak = 0;
+    while (worn.has(dayKey(cursor))) {
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    streakEl.textContent = String(streak);
+
+    // Last 7 calendar days (oldest → newest) for the ring + dots.
+    const last7 = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today); d.setDate(d.getDate() - i);
+      last7.push({ key: dayKey(d), isToday: i === 0 });
+    }
+    const wornThisWeek = last7.filter((d) => worn.has(d.key)).length;
+
+    const numEl = document.getElementById('habit-week-num');
+    if (numEl) numEl.textContent = `${wornThisWeek}/7`;
+
+    // Ring (SVG): track + accent arc for fraction worn.
+    const ring = document.getElementById('habit-week-ring');
+    if (ring) {
+      const cx = 60, cy = 60, r = 50, sw = 10;
+      const circ = 2 * Math.PI * r;
+      const frac = wornThisWeek / 7;
+      const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3B82F6';
+      const track = getComputedStyle(document.documentElement).getPropertyValue('--track').trim() || 'rgba(15,23,42,0.07)';
+      ring.innerHTML = `
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${track}" stroke-width="${sw}" />
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${accent}" stroke-width="${sw}"
+          stroke-linecap="round" stroke-dasharray="${circ}"
+          stroke-dashoffset="${circ * (1 - frac)}"
+          transform="rotate(-90 ${cx} ${cy})" />`;
+    }
+
+    // Per-day dots.
+    const dots = document.getElementById('habit-dots');
+    if (dots) {
+      dots.innerHTML = last7.map((d) => {
+        const cls = ['hd'];
+        if (worn.has(d.key)) cls.push('on');
+        if (d.isToday) cls.push('today');
+        return `<span class="${cls.join(' ')}" title="${d.key}"></span>`;
+      }).join('');
+    }
+  } catch (err) {
+    console.warn('[habits] render failed', err);
+  }
+}
+
+window.addEventListener('whoop-data-changed', () => renderHabits());
+renderHabits();
 
 // ----- Notifications setup ------------------------------------------------
 

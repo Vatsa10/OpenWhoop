@@ -68,6 +68,28 @@ export function notifyLowRecovery(score) {
   });
 }
 
+/**
+ * Morning briefing — the daily-habit hook. Fires once per day in the morning
+ * with today's recovery and training recommendation. The caller is responsible
+ * for the once-per-day / morning-window gating.
+ */
+export function notifyMorningBriefing({ recoveryScore, planLabel, strainRange } = {}) {
+  const rec = recoveryScore != null ? `Recovery ${Math.round(recoveryScore)}%` : 'No recovery data yet';
+  const target = Array.isArray(strainRange) ? ` · target strain ${strainRange[0]}-${strainRange[1]}` : '';
+  notify('Good morning', {
+    body: `${rec}. ${planLabel || 'Open OpenWhoop for today.'}${target}`,
+    tag: 'morning-briefing',
+    requireInteraction: false,
+  });
+}
+
+export function notifyJournalReminder() {
+  notify('Log yesterday', {
+    body: 'Tag alcohol, stress, caffeine, or training so OpenWhoop can learn what moves your recovery.',
+    tag: 'journal-reminder',
+  });
+}
+
 export function notifyLowBattery(pct) {
   notify(`⚡ Whoop battery low: ${Math.round(pct)}%`, {
     body: 'Charge your Whoop to ensure continuous tracking.',
