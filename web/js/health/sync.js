@@ -66,11 +66,25 @@ export async function applySnapshotToProfile(db = null, snap = undefined) {
  * Start the background polling loop. Call once on app init.
  * Returns a stop() function.
  */
+// The LAN snapshot poll only makes sense when the user runs the Python
+// dashboard AND has enabled Health Auto Export. It's an advanced opt-in, so we
+// don't poll until they engage the Apple Health setup — otherwise a plain
+// static server (npx serve / Cloudflare) would log a guaranteed 404 to the
+// console on every load. enableHealthPolling() flips the flag from the UI.
+const HEALTH_POLL_KEY = 'openwhoop-health-poll';
+export function healthPollingEnabled() {
+  try { return localStorage.getItem(HEALTH_POLL_KEY) === '1'; } catch { return false; }
+}
+export function enableHealthPolling() {
+  try { localStorage.setItem(HEALTH_POLL_KEY, '1'); } catch {}
+}
+
 export function startHealthPolling(onUpdate = () => {}) {
+  // Opt-in only (see above): no request, no 404, until the user turns it on.
+  if (!healthPollingEnabled()) return () => {};
   // The Python LAN snapshot server is only reachable from the local dashboard
   // itself (http://localhost or an http LAN IP). On an https static deploy
-  // (Cloudflare Pages) it's both same-origin-absent and mixed-content-blocked,
-  // so don't poll at all — this avoids endless 404s/console spam on the site.
+  // it's both same-origin-absent and mixed-content-blocked, so don't poll.
   if (typeof location !== 'undefined' && location.protocol === 'https:') {
     const h = location.hostname;
     const isLan = h === 'localhost' || h === '127.0.0.1' ||

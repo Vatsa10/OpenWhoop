@@ -8,7 +8,7 @@ import { insertSamplesBatch, startSession, endSession, logEvent } from './data/q
 import { isoUtcNow } from './util/time.js';
 import { exportAllToJson, importAllFromJson, exportSamplesCsv, exportDailyMetricsCsv, exportJournalCsv, exportWorkoutsCsv } from './data/export.js';
 import {
-  startHealthPolling, readShortcutResult, triggerWeightShortcut, buildIngestUrl,
+  startHealthPolling, enableHealthPolling, readShortcutResult, triggerWeightShortcut, buildIngestUrl,
 } from './health/sync.js';
 import { readScaleIntoProfile, setWeightManually } from './health/scale.js';
 import {
@@ -76,6 +76,18 @@ function setStatus(state) {
   // Captures list is always visible (persisted across connections)
   const capList = $('mvp-captures-details');
   if (capList) capList.style.display = '';
+  // Mirror state onto the global top-bar Connect action.
+  const tbc = $('topbar-connect');
+  if (tbc) {
+    const label = state === 'connected' ? 'Disconnect'
+      : (state === 'connecting' || state === 'reconnecting') ? 'Connecting…'
+      : 'Connect Whoop';
+    // keep the leading icon, swap the trailing text node
+    tbc.lastChild && tbc.lastChild.nodeType === 3
+      ? (tbc.lastChild.textContent = ' ' + label)
+      : tbc.appendChild(document.createTextNode(' ' + label));
+    tbc.classList.toggle('is-connected', state === 'connected');
+  }
   if (state === 'connected') announceConnected(); else announceDisconnected();
 }
 
@@ -461,6 +473,16 @@ disconnectBtn.addEventListener('click', async () => {
     await endSession(db, currentSession, sampleCount);
     await logEvent(db, 'disconnect', `samples=${sampleCount}`);
   }
+});
+
+// Global top-bar Connect proxies to the real dock buttons (so mobile, where the
+// sidebar dock is hidden, can still open the BLE device picker). Web Bluetooth
+// requires the chooser open in the same user-gesture, and a synthetic .click()
+// preserves that gesture, so the picker opens normally.
+const topbarConnectBtn = $('topbar-connect');
+if (topbarConnectBtn) topbarConnectBtn.addEventListener('click', () => {
+  if (connectBtn.style.display !== 'none') connectBtn.click();
+  else disconnectBtn.click();
 });
 
 const syncNowBtn = $('mvp-sync-now');
@@ -1263,6 +1285,10 @@ if (manualWeightBtn) manualWeightBtn.addEventListener('click', async () => {
 if (healthSetupBtn) healthSetupBtn.addEventListener('click', () => {
   if (ingestUrlEl) ingestUrlEl.textContent = buildIngestUrl();
   if (healthModal) healthModal.style.display = 'flex';
+  // Opening setup means the user wants the LAN/HAE poll — enable it and start
+  // now (so it works this session without a reload).
+  enableHealthPolling();
+  startHealthPolling(async () => { await refreshWeightDisplay(); });
 });
 
 if (healthCloseBtn) healthCloseBtn.addEventListener('click', () => {
