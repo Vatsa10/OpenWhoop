@@ -497,6 +497,8 @@ if (topbarConnectBtn) topbarConnectBtn.addEventListener('click', () => {
   const close = () => { sidebar.classList.remove('open'); backdrop.classList.remove('open'); };
   openBtn.addEventListener('click', open);
   backdrop.addEventListener('click', close);
+  const closeBtn = $('close-device');
+  if (closeBtn) closeBtn.addEventListener('click', close);
   // Selecting a tab inside the drawer dismisses it; Settings opens its own drawer.
   sidebar.addEventListener('click', (e) => {
     if (e.target.closest('.tab') || e.target.closest('#open-settings')) close();
