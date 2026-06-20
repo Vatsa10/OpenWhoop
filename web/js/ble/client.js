@@ -26,7 +26,7 @@ import { createEmitter } from '../util/events.js';
 
 const RECONNECT_INITIAL_MS = 1000;
 const RECONNECT_MAX_MS = 30000;
-const BATTERY_POLL_MS = 60000;
+const BATTERY_POLL_MS = 20000;
 const RTC_DRIFT_THRESHOLD_S = 5;
 const META_QUEUE_TIMEOUT_MS = 30000;
 
@@ -458,6 +458,11 @@ export class WhoopClient {
       case EventNumber.HIGH_FREQ_SYNC_PROMPT:
         // Strap is asking for a sync. Drain history.
         this.downloadHistory().catch(() => {});
+        break;
+      case EventNumber.BATTERY_LEVEL:
+        // Strap pushes battery asynchronously — surface it immediately so the
+        // UI reflects the real device level between polls (realtime).
+        if (evt.batteryPct != null) { this.batteryPct = evt.batteryPct; this._emit('battery', evt.batteryPct); }
         break;
     }
     this._emit('event', evt);

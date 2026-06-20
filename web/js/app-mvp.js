@@ -254,6 +254,8 @@ async function setupAndConnect(deviceToUse = null) {
     if (liveBat) liveBat.textContent = batStr;
     const nowBat = document.getElementById('now-battery');
     if (nowBat) nowBat.textContent = batStr;
+    const dockBat = document.getElementById('mvp-battery');
+    if (dockBat) dockBat.textContent = `🔋 ${batStr}`;
     if (pct < 20) notifyLowBattery(pct);
   });
 
@@ -484,6 +486,22 @@ if (topbarConnectBtn) topbarConnectBtn.addEventListener('click', () => {
   if (connectBtn.style.display !== 'none') connectBtn.click();
   else disconnectBtn.click();
 });
+
+// Mobile: open/close the off-canvas sidebar (device dock, settings, Apple Health).
+(function wireSidebarDrawer() {
+  const sidebar = document.querySelector('.sidebar');
+  const openBtn = $('open-device');
+  const backdrop = $('sidebar-backdrop');
+  if (!sidebar || !openBtn || !backdrop) return;
+  const open  = () => { sidebar.classList.add('open'); backdrop.classList.add('open'); };
+  const close = () => { sidebar.classList.remove('open'); backdrop.classList.remove('open'); };
+  openBtn.addEventListener('click', open);
+  backdrop.addEventListener('click', close);
+  // Selecting a tab inside the drawer dismisses it; Settings opens its own drawer.
+  sidebar.addEventListener('click', (e) => {
+    if (e.target.closest('.tab') || e.target.closest('#open-settings')) close();
+  });
+})();
 
 const syncNowBtn = $('mvp-sync-now');
 if (syncNowBtn) syncNowBtn.addEventListener('click', async () => {

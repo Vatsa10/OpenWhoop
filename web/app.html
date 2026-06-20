@@ -96,6 +96,7 @@
       <span id="mvp-wrist" title="wrist worn">⚪ Wrist</span>
       <span id="mvp-charge" title="charging state">⚪ Charge</span>
       <span id="mvp-rtc" title="strap clock sync">⚪ Clock</span>
+      <span id="mvp-battery" title="strap battery">🔋 —</span>
     </div>
 
     <button id="mvp-connect">Connect Whoop</button>
@@ -204,6 +205,9 @@
   <!-- Top bar -->
   <header class="top-bar">
     <div class="top-bar-left">
+      <button id="open-device" class="menu-btn" type="button" aria-label="Device & settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
       <div class="date-pill"><span class="dot"></span><span id="topbar-date">Today</span></div>
     </div>
     <div class="top-bar-right">
@@ -770,6 +774,7 @@
   </div>
 </aside>
 <div class="backdrop" id="drawer-backdrop"></div>
+<div id="sidebar-backdrop"></div>
 
 <!-- Mobile bottom navigation — visible only on iPhone-width screens via CSS -->
 <nav class="mobile-nav" id="mobile-nav" aria-label="Primary">
