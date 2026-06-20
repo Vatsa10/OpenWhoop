@@ -13,6 +13,9 @@ dist/
 .ruff_cache/
 node_modules/
 vendor/
+# …but the web app's vendored libs (Chart.js, idb) must ship with the deploy
+!web/vendor/
+!web/vendor/**
 .claude/
 
 # Cloudflare Wrangler local cache

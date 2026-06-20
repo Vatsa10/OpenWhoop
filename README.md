@@ -1,427 +1,388 @@
 # OpenWhoop
 
-An **independent, unofficial, educational** BLE client for the WHOOP 4.0
-strap. Reads heart rate, RR intervals, SpO₂, and skin temperature off the
-band over Bluetooth Low Energy, stores everything locally in your browser,
-and computes textbook **HRV, recovery, and strain** estimates on-device.
+An independent, unofficial, educational BLE client for the WHOOP 4.0 strap.
+It reads heart rate, RR intervals, SpO2, and skin temperature from the band
+over Bluetooth Low Energy, stores everything locally in the browser, and
+computes textbook HRV, recovery, and strain estimates on-device. No
+subscription, no cloud account, no data leaving your machine.
 
-Built on top of open research from [`jogolden/whoomp`][whoomp] and
+Built on open research from [`jogolden/whoomp`][whoomp] and
 [`bWanShiTong/reverse-engineering-whoop`][bwan].
 
-> [!IMPORTANT]
-> **Disclaimer.** This is an unofficial, third-party project provided for
-> **educational, research, and personal interoperability purposes only**.
-> It is **not affiliated with, endorsed by, or sponsored by WHOOP, Inc.**
-> "WHOOP" and "WHOOP 4.0" are trademarks of WHOOP, Inc.; references here
-> are nominative and describe hardware compatibility only.
+> **Disclaimer**
 >
-> The metrics surfaced by this software are **not clinically validated and
-> are not medical advice**. Do not use for medical, clinical, diagnostic,
-> or therapeutic purposes. The software is provided "as is" without
-> warranty of any kind (MIT). **See [DISCLAIMER.md](DISCLAIMER.md) before
-> using.**
+> This is an unofficial, third-party project provided for educational,
+> research, and personal interoperability purposes only. It is not
+> affiliated with, endorsed by, or sponsored by WHOOP, Inc. "WHOOP" and
+> "WHOOP 4.0" are trademarks of WHOOP, Inc.; references here are nominative
+> and describe hardware compatibility only.
+>
+> The metrics produced by this software are not clinically validated and are
+> not medical advice. Do not use for medical, clinical, diagnostic, or
+> therapeutic purposes. The software is provided "as is" without warranty of
+> any kind (MIT). Read [DISCLAIMER.md](DISCLAIMER.md) before using.
 
-> The WHOOP 4.0 device itself broadcasts raw sensor telemetry over standard
-> BLE without a subscription gate at the wire layer. This project lets you
-> read that telemetry from a strap you own — nothing more.
+**Live:** <https://openwhoop.vatsa.online>
 
-**🌐 Try it now:** <https://openwhoop.pages.dev> — landing page with setup guide, then
-launch the dashboard. Served from Cloudflare's CDN. No install, no signup;
-pair your own strap over BLE (needs a Chromium-family browser on Mac/Linux,
-or Bluefy on iPhone).
+The site opens on a landing page with the feature overview and setup guide,
+then links to the dashboard. Pairing requires a Chromium-family browser on
+desktop, or Bluefy on iPhone (see [iOS](#ios-iphone-and-ipad)).
 
----
+## Table of contents
 
-## Pick your install path
+- [Architecture](#architecture)
+- [Quick start](#quick-start)
+- [Deployment (Cloudflare Pages)](#deployment-cloudflare-pages)
+- [iOS (iPhone and iPad)](#ios-iphone-and-ipad)
+- [Features](#features)
+- [Computed metrics](#computed-metrics)
+- [Data storage](#data-storage)
+- [Offline buffer](#offline-buffer)
+- [BLE protocol](#ble-protocol)
+- [Project layout](#project-layout)
+- [Development](#development)
+- [Troubleshooting](#troubleshooting)
+- [Credits](#credits)
+- [License](#license)
 
-| Where you'll use it | Best path | Cost | Setup time |
-|---|---|---|---|
-| **iPhone — phone-only, never want a Mac in the loop** | **[docs/IPHONE_BLUEFY.md](docs/IPHONE_BLUEFY.md)** — Bluefy browser + Cloudflare Pages. Pair the strap directly from iPhone | Free forever, no developer account | ~20 min |
-| **iPhone — happy to keep a Mac around as the hub** | [docs/IPHONE.md](docs/IPHONE.md) — install the PWA from Safari, pair on Mac, JSON export/import | Free, no developer account | 5 min |
-| **Mac Chrome, day-to-day dev** | Read on below | Free | 30 sec |
-| **iPhone — want a polished native-app feel and have Xcode** | See the [`ios-app` branch](../../tree/ios-app) — Capacitor wrap, free Apple-ID signing | Free but re-sign in Xcode every 7 days | 15 min |
+## Architecture
 
----
+OpenWhoop has two independent ways to run. Most users only need the first.
 
-## Quick start (Mac Chrome)
+| Component | Runs where | Purpose |
+| --- | --- | --- |
+| Web app (`web/`) | Any browser, served statically | Pairs the strap via Web Bluetooth, stores data in IndexedDB, renders the dashboard. Fully standalone. |
+| Pages Functions (`functions/`) | Cloudflare Workers (serverless) | `/api/coach` (AI coach, Workers AI) and `/api/sync` (optional encrypted cross-device sync, needs R2). |
+| Python CLI (`openwhoop/`) | Your own Mac, Linux, or Raspberry Pi | Optional native BLE recorder into SQLite plus a local static server. Alternative to the browser, not required. |
+
+The Python package cannot run on a remote/cloud host: it needs a physical
+Bluetooth radio with the strap in range. It is for running locally on a
+machine near the strap.
+
+## Quick start
+
+### Option A: static server (recommended, no Python)
+
+The web app is self-contained. Serve the `web/` directory over localhost
+(`localhost` is a secure context, which Web Bluetooth requires):
 
 ```bash
-# Start the local server (serves web/ as http://localhost:8765/).
-# Use --host 0.0.0.0 if you also want iPhone Health Auto Export to reach it.
-./run.sh dash --host 0.0.0.0 --port 8765
+npx serve web -l 8765
+# or
+python -m http.server 8765 --directory web
 ```
 
-Open **Chrome** (not Safari — Web Bluetooth only works in Chromium-family
-browsers on Mac) at `http://localhost:8765/app.html`. In the top-right panel:
+Open a Chromium-family browser (Chrome, Edge, Brave, Arc) at
+`http://localhost:8765/`. The landing page loads; click **Launch** to open
+the dashboard at `/app.html`. In the connection panel:
 
-1. Tap your Whoop band to wake it (it won't advertise while charging).
-2. Click **Connect Whoop** — Chrome shows a device picker.
+1. Tap the strap to wake it (it does not advertise while charging).
+2. Click **Connect Whoop**; the browser shows a device picker.
 3. Select your band.
 
 On every connect, OpenWhoop automatically:
 
-- Fetches the strap's identity, serial, and on-wrist state (`GET_HELLO`).
-- Compares the strap's RTC to your system clock and re-syncs if drifted (`SET_CLOCK`).
-- **Drains the strap's flash buffer** — every HR sample + RR interval recorded
-  while your Mac was away (`SEND_HISTORICAL_DATA` → `HISTORICAL_DATA_RESULT` ACK loop).
+- Fetches the strap identity, serial, and on-wrist state (`GET_HELLO`).
+- Compares the strap RTC to your system clock and re-syncs if drifted (`SET_CLOCK`).
+- Drains the strap flash buffer: every HR sample and RR interval recorded
+  while the host was away (`SEND_HISTORICAL_DATA` to `HISTORICAL_DATA_RESULT`).
 - Starts realtime streaming.
 
-If you wear the strap on a workout without your Mac nearby, the data lands
-in IndexedDB the moment you walk back in range. You can also tap **Sync from
-strap now** to trigger another backfill manually.
+The first time the dashboard opens with an empty database, 14 days of
+synthetic data are seeded so the charts are not blank. Real data accumulates
+alongside it; use **Export** then **Reset** then **Import** for a clean slate.
 
-The small dots in the panel show live state:
+### Option B: Python CLI
 
-- 🟢 **Wrist** — strap is on your arm (from `WRIST_ON`/`WRIST_OFF` events)
-- ⚡ **Charge** — strap is on the charger
-- 🟢 **Clock** — strap RTC is in sync (🔴 = `RTC_LOST` fired, re-syncing)
+Use this only for a native BLE recorder into SQLite. The helper scripts are
+bash; on Windows run them in Git Bash.
 
-### Want to see the dashboard before connecting?
+```bash
+./setup.sh                                    # create .venv, install openwhoop
+./run.sh dash --host 0.0.0.0 --port 8765      # serve web/ and bridge BLE
+```
 
-The first time you open the dashboard with an empty IndexedDB, 14 days of
-synthetic data are seeded automatically so the rings and charts aren't blank.
-Real data from your strap accumulates alongside it; once you have a week of
-real recordings the demo data is hard to notice. Export → Import (the buttons
-in the panel) gives you a full JSON backup if you want a clean slate.
+Without the scripts:
 
-## Set your weight (for accurate calorie estimates)
+```bash
+python -m venv .venv
+.venv/Scripts/pip install -e .                # .venv/bin/pip on macOS/Linux
+.venv/Scripts/openwhoop dash --port 8765
+```
 
-Four ways, pick whichever fits your setup:
+## Deployment (Cloudflare Pages)
 
-| Path | Button | Friction | Needs |
-|---|---|---|---|
-| **📱 iPhone Shortcut** | "📱 iPhone" | One-tap pull | Install `WhoopPullWeight` shortcut (see [docs/SHORTCUT.md](docs/SHORTCUT.md)) |
-| **Health Auto Export** | "Setup…" → instructions | Set-and-forget | $1.99/mo HAE app + LAN access |
-| **⚖️ Bluetooth scale** | "⚖️ Scale" | Tap, step on scale | A standards-compliant BT scale (SIG `0x181D`) |
-| **✎ Manual entry** | "✎" | Always works | Nothing |
+The site is `web/` plus `functions/`, deployed to Cloudflare Pages.
 
-The Bluetooth scale path uses the standard Weight Scale Service (0x181D)
-directly from Web Bluetooth — no app, no cloud, no iPhone. Compatible scales:
-Beurer BF600 series, A&D UC-352BLE, some Withings/Nokia BPM models. Proprietary
-scales (Renpho, Eufy, Xiaomi) don't expose 0x181D — use the iPhone path or
-manual entry instead.
+### Git integration (auto-deploy on push)
 
-## Apple Health bridge (advanced)
+In the Cloudflare dashboard, create a Pages project connected to the GitHub
+repository with these build settings:
 
-The Python dashboard exposes `POST /api/health/ingest` accepting the
-Health Auto Export JSON schema. Run with `--host 0.0.0.0` so the iPhone HAE
-app can reach you on the LAN. Values land in `data/health-latest.json`,
-which the browser polls every minute and merges into `profile.weight_kg`.
+| Setting | Value |
+| --- | --- |
+| Framework preset | None |
+| Build command | (empty) |
+| Build output directory | `web` |
+| Root directory | `/` |
 
-See [docs/SHORTCUT.md](docs/SHORTCUT.md) for the on-demand Apple Shortcut
-that round-trips through `shortcuts://x-callback-url`.
+Every push to `main` then builds and deploys automatically. Functions in
+`functions/` are detected and deployed without extra configuration.
+
+### Manual deploy
+
+```bash
+npx wrangler login
+npm run deploy          # wrangler pages deploy web --project-name=openwhoop
+```
+
+### Bindings
+
+Two features depend on bindings configured under **Settings > Functions**
+after the first deploy. Both degrade gracefully if absent.
+
+- **AI coach** needs a Workers AI binding: variable name `AI`. Free tier, no
+  third-party API key. Without it, `/api/coach` returns 503 and the coach
+  falls back to built-in rule-based tips. Redeploy after adding the binding.
+- **Cross-device sync** needs an R2 bucket (paid plan). It is disabled by
+  default in `wrangler.toml`. To enable: run
+  `npx wrangler r2 bucket create openwhoop-sync`, uncomment the `[[r2_buckets]]`
+  block, add an R2 binding named `SYNC`, and redeploy. Without it, `/api/sync`
+  returns 503 and the client disables sync.
+
+### Custom domain on external DNS
+
+To use a domain whose nameservers stay at your registrar (no full Cloudflare
+nameserver migration):
+
+1. At your DNS provider, add a CNAME: `openwhoop` to `<project>.pages.dev`.
+2. In the Pages project, **Custom domains > Set up a custom domain**, enter
+   the full hostname. Cloudflare validates the CNAME and issues the TLS
+   certificate. Status moves from Pending to Active in a few minutes.
+
+If the apex zone is half-claimed (Pending) in your Cloudflare account,
+external-CNAME validation fails; remove the pending zone first.
+
+## iOS (iPhone and iPad)
+
+Mobile Safari does not implement Web Bluetooth. Use
+[Bluefy](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055), a
+WebKit browser with Web Bluetooth via CoreBluetooth.
+
+1. Open the deployed site (or a LAN address such as `http://<mac-ip>:8765/`)
+   in Bluefy.
+2. Go to the dashboard and tap **Connect Whoop**; grant Bluetooth permission.
+
+The strap pairs directly to the iPhone over BLE. A native app shell using
+Capacitor is available on the [`ios-app` branch](../../tree/ios-app); see
+[docs/native-ios.md](docs/native-ios.md). Phone-only and Mac-hub workflows
+are documented in [docs/IPHONE_BLUEFY.md](docs/IPHONE_BLUEFY.md) and
+[docs/IPHONE.md](docs/IPHONE.md).
 
 ## Features
 
-### Analysis & coaching
-- **Activity journal with tag correlation** — log up to 11 lifestyle tags
-  (alcohol, stress, hardworkout, caffeine, meditation, cold, nap, …). After
-  accumulating 2+ tagged/untagged days per tag, the app automatically computes
-  a Cohen's d effect size and surfaces insights like *"Alcohol strongly lowers
-  next-day recovery −20pts (−28%)(n=4)"*. Unlike the official app, you own
-  this analysis and the underlying data.
-- **Daily training plan** — rest / active / train / push recommendation driven
-  by today's recovery score, 7-day strain load, and accumulated sleep debt.
-  Includes the day-specific rationale (actual numbers) alongside the zone advice.
-- **Health insights engine** — 12 generators watching HRV trend, RHR trend,
+### Analysis and coaching
+
+- **Activity journal with tag correlation.** Log up to 11 lifestyle tags
+  (alcohol, stress, hard workout, caffeine, meditation, cold, nap, and more).
+  After 2 or more tagged and untagged days per tag, the app computes a
+  Cohen's d effect size and surfaces insights such as "Alcohol strongly
+  lowers next-day recovery, -20 pts (-28%) (n=4)".
+- **Daily training plan.** Rest, active, train, or push recommendation driven
+  by today's recovery score, 7-day strain load, and accumulated sleep debt,
+  with the day-specific rationale and target zone.
+- **Health insights engine.** 12 generators watching HRV trend, RHR trend,
   sleep debt, sleep consistency, recovery streaks, strain/recovery balance,
-  skin temp deviation, respiratory rate drift, sleep duration trend, SpO₂
-  anomaly (< 95% / < 93%), sleep performance (< 70% / < 55%), and
-  **Acute:Chronic Workload Ratio** (ACWR) — flags training spikes above 1.5×
-  or detraining below 0.6× the chronic baseline, reducing injury risk.
-- **Weekly summary with week-over-week comparison** — emoji-formatted 7-day
-  recap in the Trends tab. When prior-week data exists, ✅/⚠️ delta lines
-  show how recovery, HRV, resting HR, and sleep changed vs the previous 7
-  days. Top-3 personalised tag insights are appended automatically.
-- **Switchable metric heatmap calendar** — the 30-day calendar in the Trends
-  tab now has a metric picker (Recovery / Sleep performance / Strain / HRV).
-  HRV uses percentile-relative colouring to account for individual variation.
-- **Poincaré plot** — SD1/SD2 scatter from last night's RR intervals, rendered
-  in the Recovery tab. Tells you at a glance whether short-term or long-term
-  HRV is dominating.
-- **Recovery coach + strain target** — a one-line recommendation below the
-  recovery ring ("Ready for high intensity · Target strain 14–18") guides
-  training intensity without tab-switching. The same target also appears in
-  the Strain tab next to the cumulative score.
-- **HRV, RHR, and skin temp baselines** — Recovery Components card shows
-  today's RMSSD, resting HR, and skin temperature each compared to their
-  14-day rolling baseline with colour-coded deltas. The RMSSD number is the
-  one Whoop shows only to paying subscribers.
-- **Recovery calendar heatmap** — 30-day grid in the Trends tab coloured
-  green/yellow/red by recovery score. Today's cell is highlighted. **Click
-  any cell to jump straight to the Recovery tab for that day.**
-- **Historical date navigation** — ‹ › buttons in Recovery, Sleep, and Strain
-  tabs let you browse any past day in your data without leaving the app.
-- **Workout labels** — click the "✎ label" affordance on any detected workout
-  to add or rename it inline (e.g., "Running", "Cycling"). Labels are stored
-  in IndexedDB and included in the Workouts CSV export.
-- **Journal backfill & delete** — a date picker (defaults to today) lets you
-  log tags for past days you forgot to annotate; a × button on each history
-  row lets you delete individual entries.
-- **Sleep trend charts** — the Sleep tab now shows a 30-day stacked bar chart
-  (Deep / REM / Light duration) and a 30-day respiratory rate line chart,
-  mirroring the HRV/RHR/skin-temp trend charts in the Recovery tab.
-- **Personal records** — the Trends tab shows all-time bests for HRV, lowest
-  RHR, peak recovery, longest sleep, peak strain, and best sleep performance,
-  each with the date it was achieved.
+  skin temperature deviation, respiratory rate drift, sleep duration trend,
+  SpO2 anomalies, sleep performance, and the Acute:Chronic Workload Ratio
+  (ACWR), which flags training spikes above 1.5x or detraining below 0.6x.
+- **Weekly summary** with week-over-week deltas for recovery, HRV, resting
+  HR, and sleep, plus the top tag insights.
+- **AI coach.** Ask questions about recovery, strain, sleep, and stress,
+  grounded in the day's actual metrics. Runs on Cloudflare Workers AI.
+- **Poincare plot** (SD1/SD2) from the previous night's RR intervals.
+- **Recovery coach and strain target** shown next to the recovery ring.
+- **HRV, RHR, and skin temperature baselines** versus a 14-day rolling
+  baseline with color-coded deltas.
+- **Calendar heatmap** with a metric picker (recovery, sleep performance,
+  strain, HRV); click a day to open it.
+- **Historical date navigation** across the Recovery, Sleep, and Strain tabs.
+- **Workout labels**, editable inline and included in the CSV export.
+- **Personal records** for HRV, lowest RHR, peak recovery, longest sleep,
+  peak strain, and best sleep performance.
 
-### Data & export
-- **IndexedDB persistence** — samples, daily_metrics, journal, captures,
-  workouts, sleep_stages, and profile — all local, no server.
-- **CSV export** — separate buttons for raw samples, daily metrics (includes
-  `hrv_baseline_ms`), journal entries, and detected workouts (includes label).
-  JSON export/import for full backup/restore.
-- **Progressive Web App** — installable, cache-first for assets, offline-capable.
-- **Push notifications** — opt-in for backfill complete, low recovery, low
-  battery, and HR anomaly alerts.
+### Data and export
 
-### Hardware & connectivity
-- **Generic HR Profile toggle** — Diagnostics → "HR profile" turns on the
-  standard BLE HR service (0x180D) so Strava / Zwift / Peloton / Apple
-  Watch companions can pair with the strap as a regular HR monitor.
-- **Smart alarm** — set a wake time; the strap vibrates even if your phone
-  is in the other room. Set / Off / Test from the **Wake Alarm card** on
-  the Overview tab.
-- **Bluetooth scale** — pairs directly with any standard Weight Scale Service
-  (0x181D) scale (Beurer, A&D, some Withings). No app, no cloud.
-- **Apple Health weight sync** — poll via iPhone Shortcut or Health Auto Export.
-- **Raw packet capture** — records every framed packet to NDJSON, useful for
-  bytes 18+ reverse-engineering research.
-- **Diagnostics drawer** — Hello / Battery / Clock / Data Range / Haptic /
-  Raw IMU / Extended Battery / HR Profile.
-- **Console log drawer** — last 30 lines of firmware printf output.
-- **Multi-tab guard** — refuses to connect if another tab is already holding
-  the GATT connection.
+- **Local IndexedDB persistence** for samples, daily metrics, journal,
+  captures, workouts, sleep stages, and profile. No server.
+- **CSV export** for raw samples, daily metrics, journal entries, and
+  workouts, plus full JSON export and import for backup and restore.
+- **Progressive Web App.** Installable, cache-first assets, offline capable.
+- **Push notifications** (opt-in) for backfill complete, low recovery, low
+  battery, and HR anomalies.
 
----
+### Hardware and connectivity
 
-## On iPhone (Bluefy)
+- **Generic HR Profile toggle.** Exposes the standard BLE HR service (0x180D)
+  so Strava, Zwift, Peloton, or Apple Watch can pair the strap as an HR
+  monitor.
+- **Smart alarm.** Set a wake time; the strap vibrates to wake you.
+- **Bluetooth scale.** Pairs with any standard Weight Scale Service (0x181D)
+  scale (Beurer, A&D, some Withings). No app, no cloud.
+- **Apple Health weight sync** via iPhone Shortcut or Health Auto Export.
+- **Raw packet capture** to NDJSON for protocol research.
+- **Diagnostics drawer**: Hello, Battery, Clock, Data Range, Haptic, Raw IMU,
+  Extended Battery, HR Profile.
+- **Multi-tab guard** to prevent two tabs holding the GATT connection.
 
-Web Bluetooth is not available in Mobile Safari. Use
-[**Bluefy**](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055)
-($0.99 one-time) — it's a WebKit browser with a proper Web Bluetooth
-implementation via CoreBluetooth.
+## Computed metrics
 
-1. Serve the dashboard from your Mac (`./run.sh dash`).
-2. Make sure your iPhone and Mac are on the same Wi-Fi network.
-3. Open Bluefy on iPhone and navigate to `http://<your-Mac-IP>:8765/`.
-4. Tap **Connect Whoop** — Bluefy will ask for Bluetooth permission.
+| Metric | Source | Computation |
+| --- | --- | --- |
+| Heart rate (BPM) | Live packet bytes 1-2 | Direct decode |
+| RR interval (ms) | Live packet bytes 3-4 | Direct decode |
+| SpO2 (%) | Live packet byte 5 | Direct decode |
+| Skin temperature | Live packet byte 6 | `byte - 25` degrees C offset |
+| HRV (RMSSD) | RR intervals during 02:00-06:00 local | Root mean square of successive RR differences, Malik filter |
+| Recovery score | Today's RMSSD vs 14-day baseline | z-score mapped to 0-100 |
+| Strain score | HR across the day | Borg-style load: `21 * (1 - e^(-load/100))` |
+| Resting HR | 5th percentile of daily HR | Order statistic |
 
-The Whoop band pairs directly to your iPhone over BLE; your Mac is only
-serving the HTML/JS files.
+WHOOP's own algorithms are closed-source. These reproduce the intent of the
+metrics with textbook HRV and training-load formulas.
 
----
+## Data storage
 
-## Where's the data?
-
-Everything lives in **IndexedDB** inside your browser — no server-side
-storage. To inspect it:
-
-*Chrome → DevTools (F12) → Application → Storage → IndexedDB → `openwhoop`*
-
-You'll find these object stores:
+Everything lives in IndexedDB in the browser. To inspect it:
+Chrome DevTools (F12) > Application > Storage > IndexedDB > `openwhoop`.
 
 | Store | Contents |
-| ----- | -------- |
-| `samples` | every ~30-second sensor packet (HR/RR/SpO2/temp/accel) |
-| `sessions` | start/stop of each recording session |
-| `device_events` | connect/disconnect/battery/error log |
-| `daily_metrics` | one row per calendar day with HRV/recovery/strain/sleep |
-| `profile` | age, sex, weight (used for calorie estimates) |
-| `sleep_stages` | nightly sleep stage breakdown |
-| `workouts` | detected workout windows with zone time and calories |
-| `journal` | daily activity entries with tags (for correlation analysis) |
-| `captures` | raw NDJSON packet dumps for protocol research |
+| --- | --- |
+| `samples` | Each ~30-second sensor packet (HR, RR, SpO2, temp, accel) |
+| `sessions` | Start and stop of each recording session |
+| `device_events` | Connect, disconnect, battery, and error log |
+| `daily_metrics` | One row per day (HRV, recovery, strain, sleep) |
+| `profile` | Age, sex, weight (used for calorie estimates) |
+| `sleep_stages` | Nightly sleep stage breakdown |
+| `workouts` | Detected workout windows with zone time and calories |
+| `journal` | Daily tag entries for correlation analysis |
+| `captures` | Raw NDJSON packet dumps for protocol research |
 
-Use the **Export** button to download a full JSON backup. **Import** restores
-it on any machine (or after clearing browser storage).
+Use **Export** for a full JSON backup and **Import** to restore on any
+machine or after clearing browser storage.
 
----
+## Offline buffer
 
-## What you get
+The WHOOP 4.0 has internal flash that records 1 Hz HR and RR intervals
+continuously, even with no host connected. The official app drains that
+buffer over BLE on the next connection, and so does OpenWhoop.
 
-| Metric              | Source                       | How it's computed                                   |
-| ------------------- | ---------------------------- | --------------------------------------------------- |
-| Heart rate (BPM)    | Live BLE packet bytes 1–2    | direct decode                                       |
-| RR interval (ms)    | Live BLE packet bytes 3–4    | direct decode                                       |
-| SpO2 (%)            | Live BLE packet byte 5       | direct decode                                       |
-| Skin temperature    | Live BLE packet byte 6       | `byte − 25 °C` offset                               |
-| **HRV (RMSSD)**     | RR intervals during 02–06 local | √(mean of squared successive RR diffs), Malik filter |
-| **Recovery score**  | Today's RMSSD vs 14-day baseline | z-score → 0-100 scale                            |
-| **Strain score**    | HR throughout the day        | Borg-like load: `21·(1 − e^(−load/100))`            |
-| Resting HR          | 5th percentile of daily HR   | order-stat                                          |
-
-Whoop's actual algorithms are closed-source — these reproduce the *spirit*
-of the metrics using textbook HRV and training-load formulas.
-
----
-
-## The strap as offline buffer
-
-Whoop 4.0 has internal flash that records 1 Hz HR + RR intervals continuously,
-even when no host is connected. The official Whoop app drains that buffer over
-BLE on next connection — and so does OpenWhoop.
-
-The wire protocol is fully reverse-engineered: see
-[`docs/PROTOCOL.md`](docs/PROTOCOL.md) for the complete reference (73 commands,
-100+ events, frame format, the historical-dump state machine).
-
-In practice for you:
-
-- **Wear the strap on a workout, leave the Mac at home.** Strap records to flash.
-- **Walk back in range, page open.** WhoopClient sees `gattserverdisconnected`
-  resolve, runs `_postConnectFlow()` → backfill kicks in → samples arrive on
-  the data channel → IndexedDB grows. The progress bar shows samples received.
-- **Reach the end of buffer.** Strap sends `HISTORY_COMPLETE`, realtime
+- Wear the strap without the host nearby; the strap records to flash.
+- Walk back in range with the page open; the client detects the connection,
+  runs the post-connect flow, and backfill begins. Samples arrive on the data
+  channel and land in IndexedDB.
+- When the buffer is drained the strap sends `HISTORY_COMPLETE` and realtime
   streaming resumes.
 
-If flash starts filling up between connects (long absence, charger plugged in),
-the strap emits `HIGH_FREQ_SYNC_PROMPT` on its event channel and the client
-kicks off another sync automatically.
+If flash fills between connects, the strap emits `HIGH_FREQ_SYNC_PROMPT` and
+the client starts another sync automatically.
 
-## How the protocol works
+## BLE protocol
 
-The Whoop 4.0 advertises a single custom BLE GATT service
+The WHOOP 4.0 advertises a single custom GATT service
 `61080000-8d6d-82b8-614a-1c8cb0f8dcc6` with five characteristics:
 
-| UUID  | Direction | Purpose                                  |
-| ----- | --------- | ---------------------------------------- |
-| ...01 | write     | commands to strap                        |
-| ...02 | notify    | command responses                        |
-| ...03 | notify    | async device events                      |
-| ...04 | notify    | 96-byte real-time sensor packets         |
-| ...05 | notify    | diagnostic / memfault reports            |
+| UUID suffix | Direction | Purpose |
+| --- | --- | --- |
+| ...01 | write | Commands to strap |
+| ...02 | notify | Command responses |
+| ...03 | notify | Async device events |
+| ...04 | notify | 96-byte realtime sensor packets |
+| ...05 | notify | Diagnostic / memfault reports |
 
-Each command frame is `[0xAA][cmd][len:LE16][payload][CRC32:LE]`. The
-CRC uses polynomial `0x04C11DB7`, init `0xFFFFFFFF`, reflect in/out, and
-final XOR `0xF43F44AC` — see [`web/js/ble/crc.js`](web/js/ble/crc.js).
+Each command frame is `[0xAA][cmd][len:LE16][payload][CRC32:LE]`. The CRC
+uses polynomial `0x04C11DB7`, init `0xFFFFFFFF`, reflect in and out, and
+final XOR `0xF43F44AC` (see [`web/js/ble/crc.js`](web/js/ble/crc.js)).
 
-Bytes 0–19 of each 96-byte real-time packet are decoded. Bytes 20–91 are
-not yet known publicly — likely PPG waveform samples, gyroscope, and
-respiration estimates. They are stored raw so the schema doesn't need to
-change once they're decoded.
-
----
-
-## Troubleshooting
-
-**"Connect Whoop" does nothing** — Web Bluetooth requires a secure context
-(HTTPS or localhost). Serving from `./run.sh dash` at `localhost:8765` is
-fine; a raw `file://` URL is not.
-
-**Device picker shows no Whoop** — tap the band to wake it (LEDs will
-blink). If it still doesn't show, check that Chrome has Bluetooth permission
-in *System Settings → Privacy & Security → Bluetooth*.
-
-**HR drops and reconnects** — BLE on macOS drops occasionally. The client
-auto-reconnects with exponential backoff; samples already written to
-IndexedDB are safe.
-
-**HRV / recovery showing `—`** — you need at least one full overnight with
-the band on your wrist. Metrics are computed automatically after data is
-recorded; check back the next day.
-
-**iPhone: "Web Bluetooth is not supported"** — use
-[Bluefy](https://apps.apple.com/app/bluefy-web-ble-browser/id1492822055)
-instead of Safari.
-
----
+Bytes 0-19 of each 96-byte realtime packet are decoded. Bytes 20-91 are not
+yet publicly known (likely PPG waveform, gyroscope, and respiration) and are
+stored raw. Full reference: [docs/PROTOCOL.md](docs/PROTOCOL.md).
 
 ## Project layout
 
 ```
 OpenWhoop/
-├── web/
-│   ├── index.html          landing page + setup guide
-│   ├── app.html            dashboard UI (Chart.js, BLE panel)
-│   ├── app.js              dashboard render (reads from api-shim)
-│   ├── styles.css
-│   ├── vendor/
-│   │   ├── chart.umd.min.js   Chart.js 4.4.0 (vendored)
-│   │   └── idb.min.js         idb 8.0.0 IndexedDB wrapper
-│   └── js/
-│       ├── app-mvp.js      BLE connect/disconnect + live HR display
-│       ├── ble/
-│       │   ├── uuids.js    GATT service/characteristic UUIDs
-│       │   ├── crc.js      Whoop custom CRC-32
-│       │   ├── packet.js   buildCommand / parseResponseHeader
-│       │   ├── parsers.js  parseRealtimePacket (96-byte → typed fields)
-│       │   └── client.js   WhoopClient (BLE lifecycle, auto-reconnect)
-│       ├── data/
-│       │   ├── schema.js   IndexedDB store definitions
-│       │   ├── db.js       openDb()
-│       │   ├── queries.js  typed read/write helpers for every store
-│       │   ├── api-shim.js intercepts /api/* fetch calls → IndexedDB
-│       │   └── export.js   buildExportPayload / exportAllToJson / importAllFromJson
-│       ├── metrics/
-│       │   ├── hrv.js      rmssd, sdnn, pnn50
-│       │   ├── strain.js   strainScore
-│       │   ├── zones.js    HR zones, calories
-│       │   ├── sleep.js    sleep window detection, stage classification
-│       │   ├── workouts.js detectWorkouts
-│       │   ├── recovery.js recoveryScore, recoveryBreakdown
-│       │   ├── rollup.js   rollupDay / rollupMissing / recomputeRecent
-│       │   ├── insights.js 12-generator health insights engine
-│       │   ├── plan.js     dailyPlan (rest/active/train/push zones)
-│       │   ├── weekly.js   weeklySummary
-│       │   └── correlate.js analyseTagCorrelations / tagInsights (Cohen's d)
-│       ├── util/
-│       │   ├── events.js   createEmitter (on / emit)
-│       │   ├── time.js     isoUtcNow, localDateKey, startOfLocalDay
-│       │   ├── multitab.js single-tab BLE guard
-│       │   └── notify.js   push notifications (backfill/recovery/battery/HR)
-│       └── dev/
-│           ├── seed.js     seedDemoData (14 days of synthetic data + journal)
-│           ├── capture.js  raw NDJSON packet recorder
-│           └── analyzer.js capture file analysis tool
-├── openwhoop/          Python package (HTTP server that serves web/)
-│   └── dashboard.py        stdlib http.server → serves web/
-├── tests/
-│   ├── js/                 Vitest unit tests (306 tests, ~2.5 s)
-│   └── *.py                Python metric tests (kept for reference)
-└── run.sh                  `./run.sh dash` starts the server
+  web/                      Static web app (deploy target)
+    index.html              Landing page and setup guide
+    app.html                Dashboard UI
+    app.js                  Dashboard render (reads from api-shim)
+    styles.css              Design system
+    vendor/                 Chart.js and idb (vendored)
+    js/
+      app-mvp.js            BLE connect/disconnect and live HR
+      ble/                  uuids, crc, packet, parsers, client
+      data/                 schema, db, queries, api-shim, export
+      metrics/              hrv, strain, zones, sleep, workouts,
+                            recovery, rollup, insights, plan, weekly,
+                            correlate
+      util/                 events, time, multitab, notify
+      dev/                  seed, capture, analyzer
+    sw.js                   Service worker
+    manifest.json           PWA manifest
+  functions/
+    api/coach.js            AI coach (Workers AI)
+    api/sync.js             Encrypted sync (R2, optional)
+  openwhoop/                Python package (optional local recorder)
+  tests/                    Vitest (JS) and pytest (Python) suites
+  wrangler.toml             Cloudflare Pages config
+  run.sh, setup.sh          Python helper scripts
 ```
 
----
+## Development
+
+```bash
+npm install            # dev dependencies (vitest, wrangler, etc.)
+npm test               # run the Vitest suite
+npx wrangler pages dev web   # serve web/ and functions/ together (coach works)
+```
+
+`npx wrangler pages dev web` is the closest local mirror of production
+because it runs the Pages Functions alongside the static assets.
+
+## Troubleshooting
+
+- **"Connect Whoop" does nothing.** Web Bluetooth needs a secure context
+  (HTTPS or `localhost`). A raw `file://` URL does not qualify.
+- **Device picker shows no strap.** Tap the band to wake it. Confirm the
+  browser has OS Bluetooth permission.
+- **Scripts (chart.umd.min.js) load as HTML / MIME error after deploy.** The
+  vendored libraries were not in the deployment. Ensure `web/vendor/` is
+  committed (it is force-included in `.gitignore`).
+- **HR drops and reconnects.** BLE on desktop drops occasionally; the client
+  auto-reconnects with backoff. Data already written is safe.
+- **HRV or recovery shows a dash.** At least one full overnight wearing the
+  band is required; metrics compute the next day.
+- **AI coach returns an error.** The Workers AI binding (`AI`) is not
+  configured, or the deployment predates adding it. Add the binding and
+  redeploy.
 
 ## Credits
 
-* [jogolden/whoomp][whoomp] — original Whoop 4.0 reverse engineering, web demo
-* [bWanShiTong/reverse-engineering-whoop][bwan] — protocol writeup, CRC parameters
-* [christianmeurer/whoop-reader][whoop-reader] — Python BLE driver (reference for BLE layer)
-* [jacc/whoop-re][jacc] — REST API research
+- [jogolden/whoomp][whoomp]: original WHOOP 4.0 reverse engineering and web demo
+- [bWanShiTong/reverse-engineering-whoop][bwan]: protocol writeup and CRC parameters
+- [christianmeurer/whoop-reader][whoop-reader]: Python BLE driver reference
+- [jacc/whoop-re][jacc]: REST API research
 
 [whoop-reader]: https://github.com/christianmeurer/whoop-reader
 [whoomp]:       https://github.com/jogolden/whoomp
 [bwan]:         https://github.com/bWanShiTong/reverse-engineering-whoop
 [jacc]:         https://github.com/jacc/whoop-re
 
----
+## License
 
-## Mirrors
+MIT. See [LICENSE](LICENSE) for the warranty disclaimer and
+[DISCLAIMER.md](DISCLAIMER.md) for the trademark notice, non-affiliation
+statement, and acceptable-use terms. Read it before using or redistributing.
 
-This project is published on two networks so it survives any one host
-going away:
-
-- **GitHub** — <https://github.com/Vatsa10/OpenWhoop> (primary; issues, PRs)
-- **Radicle** — peer-to-peer, no central account needed:
-  `rad:z4AzVRT4Z3HmHgwLWpZCY9Vy4wLn9`
-  ([web view](https://radicle.network/nodes/iris.radicle.network/rad:z4AzVRT4Z3HmHgwLWpZCY9Vy4wLn9))
-
-Clone via Radicle (install [`rad`](https://radicle.xyz) first):
-
-```sh
-rad clone rad:z4AzVRT4Z3HmHgwLWpZCY9Vy4wLn9
-```
-
-Both mirrors carry the same `main` and `ios-app` branches.
-
-## License & legal
-
-MIT, like everything upstream. See [LICENSE](LICENSE) for the warranty
-disclaimer and [DISCLAIMER.md](DISCLAIMER.md) for the trademark notice,
-non-affiliation statement, and acceptable-use terms — **read it before
-using or redistributing**.
-
-WHOOP® and WHOOP 4.0 are trademarks of WHOOP, Inc. This project is not
+WHOOP and WHOOP 4.0 are trademarks of WHOOP, Inc. This project is not
 affiliated with, endorsed by, or sponsored by WHOOP, Inc.
