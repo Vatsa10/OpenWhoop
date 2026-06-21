@@ -68,6 +68,8 @@ function setStatus(state) {
     state === 'connecting'   ? '#fc6' : '#888';
   connectBtn.style.display    = (state === 'disconnected') ? 'block' : 'none';
   disconnectBtn.style.display = (state === 'connected')    ? 'block' : 'none';
+  const connectAll = $('mvp-connect-all');
+  if (connectAll) connectAll.style.display = (state === 'disconnected') ? 'block' : 'none';
   // Connection-dependent sub-panels
   for (const id of ['mvp-sync-now', 'mvp-capture', 'mvp-diag-details', 'mvp-log-details', 'mvp-stats']) {
     const el = $(id);
@@ -118,7 +120,7 @@ async function flushLoop() {
 
 setInterval(flushLoop, FLUSH_INTERVAL_MS);
 
-async function setupAndConnect(deviceToUse = null) {
+async function setupAndConnect(deviceToUse = null, opts = {}) {
   clearError();
   if (!navigator.bluetooth) {
     const ua = navigator.userAgent;
@@ -298,7 +300,7 @@ async function setupAndConnect(deviceToUse = null) {
     if (deviceToUse) {
       await client.connectToDevice(deviceToUse);
     } else {
-      await client.requestAndConnect();
+      await client.requestAndConnect({ acceptAll: opts.acceptAll === true });
     }
     currentSession = await startSession(db, 'mvp-session');
     await logEvent(db, 'connect', client.device?.id ?? 'unknown');
@@ -350,6 +352,15 @@ connectBtn.addEventListener('click', async () => {
     return;
   }
   setupAndConnect();
+});
+
+// Fallback: show ALL nearby BLE devices (Bluefy/iOS sometimes won't surface the
+// band under service/name filters). Same multi-tab guard.
+const connectAllBtn = $('mvp-connect-all');
+if (connectAllBtn) connectAllBtn.addEventListener('click', async () => {
+  const conflict = await isAnotherTabConnected();
+  if (conflict) { showError("Another tab in this browser is already connected to the Whoop. Close it first."); return; }
+  setupAndConnect(null, { acceptAll: true });
 });
 
 async function autoConnect() {

@@ -119,19 +119,32 @@ export class WhoopClient {
 
   // ----- connection lifecycle ---------------------------------------------
 
-  async requestAndConnect() {
+  async requestAndConnect({ acceptAll = false } = {}) {
     this._intentionalDisconnect = false;
-    this.device = await navigator.bluetooth.requestDevice({
-      filters: [
-        { services: [FAMILIES.whoop5.service] },
-        { services: [FAMILIES.whoop4.service] },
-        { namePrefix: 'WHOOP' },
-      ],
-      optionalServices: [
-        FAMILIES.whoop5.service, FAMILIES.whoop4.service,
-        STD_SERVICE.HEART_RATE, STD_SERVICE.BATTERY,
-      ],
-    });
+    // Every service we may getPrimaryService() later must be whitelisted here,
+    // or Bluefy/Chrome throw SecurityError after selection.
+    const optionalServices = [
+      FAMILIES.whoop5.service, FAMILIES.whoop4.service,
+      STD_SERVICE.HEART_RATE, STD_SERVICE.BATTERY,
+    ];
+    // acceptAll shows every nearby BLE device — the reliable fallback when the
+    // band doesn't surface under filters (some Bluefy/iOS builds don't match a
+    // device by its advertised service UUID, and namePrefix is case-sensitive).
+    const options = acceptAll
+      ? { acceptAllDevices: true, optionalServices }
+      : {
+          filters: [
+            { services: [FAMILIES.whoop5.service] },
+            { services: [FAMILIES.whoop4.service] },
+            // Web Bluetooth namePrefix is case-sensitive — cover the casings
+            // WHOOP straps are seen advertising.
+            { namePrefix: 'WHOOP' },
+            { namePrefix: 'Whoop' },
+            { namePrefix: 'whoop' },
+          ],
+          optionalServices,
+        };
+    this.device = await navigator.bluetooth.requestDevice(options);
     this._attachDisconnectHandler();
     await this._connect();
   }
